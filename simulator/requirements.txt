@@ -1,0 +1,8 @@
+numpy>=1.26
+scipy>=1.11
+matplotlib>=3.8
+pymsis>=0.10
+reportlab>=4.0
+pypdf>=4.0
+# optional: GPU / PyTorch backend
+# torch>=2.2

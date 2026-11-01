@@ -1,0 +1,256 @@
+{
+ "stations_km": {
+  "below pole 60,000 km": [
+   0.0,
+   -60000.0
+  ],
+  "below pole 100,000 km": [
+   0.0,
+   -100000.0
+  ],
+  "min-demand (el>=45, a_c=0.00)": [
+   52000.0,
+   -54679.487179
+  ],
+  "min-demand (el>=45, a_c=0.12)": [
+   52000.0,
+   -54679.487179
+  ]
+ },
+ "budgets": {
+  "below pole 60,000 km": {
+   "a_req_mm_s2": 1.770598,
+   "by_ac": {
+    "0.000": {
+     "mean_sep_mm_s2": 1.770598,
+     "peak_sep_mm_s2": 1.770598,
+     "dv_km_s_per_yr": 55.875834,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.977596,
+     "years_with_30pct_prop_isp1500": 0.093899,
+     "prop_frac_1yr_isp3000": 0.850319,
+     "years_with_30pct_prop_isp3000": 0.187798
+    },
+    "0.123": {
+     "mean_sep_mm_s2": 1.729235,
+     "peak_sep_mm_s2": 1.732933,
+     "dv_km_s_per_yr": 54.570522,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.975517,
+     "years_with_30pct_prop_isp1500": 0.096145,
+     "prop_frac_1yr_isp3000": 0.843529,
+     "years_with_30pct_prop_isp3000": 0.19229
+    },
+    "0.500": {
+     "mean_sep_mm_s2": 1.617977,
+     "peak_sep_mm_s2": 1.632095,
+     "dv_km_s_per_yr": 51.059465,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.968916,
+     "years_with_30pct_prop_isp1500": 0.102756,
+     "prop_frac_1yr_isp3000": 0.823695,
+     "years_with_30pct_prop_isp3000": 0.205513
+    },
+    "1.000": {
+     "mean_sep_mm_s2": 1.501406,
+     "peak_sep_mm_s2": 1.526963,
+     "dv_km_s_per_yr": 47.38077,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.960085,
+     "years_with_30pct_prop_isp1500": 0.110734,
+     "prop_frac_1yr_isp3000": 0.800212,
+     "years_with_30pct_prop_isp3000": 0.221469
+    },
+    "1.700": {
+     "mean_sep_mm_s2": 1.38158,
+     "peak_sep_mm_s2": 1.419132,
+     "dv_km_s_per_yr": 43.599344,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.948384,
+     "years_with_30pct_prop_isp1500": 0.120338,
+     "prop_frac_1yr_isp3000": 0.772809,
+     "years_with_30pct_prop_isp3000": 0.240677
+    }
+   }
+  },
+  "below pole 100,000 km": {
+   "a_req_mm_s2": 1.154311,
+   "by_ac": {
+    "0.000": {
+     "mean_sep_mm_s2": 1.154311,
+     "peak_sep_mm_s2": 1.154311,
+     "dv_km_s_per_yr": 36.427294,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.915952,
+     "years_with_30pct_prop_isp1500": 0.144032,
+     "prop_frac_1yr_isp3000": 0.71009,
+     "years_with_30pct_prop_isp3000": 0.288063
+    },
+    "0.123": {
+     "mean_sep_mm_s2": 1.113279,
+     "peak_sep_mm_s2": 1.127745,
+     "dv_km_s_per_yr": 35.132411,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.908218,
+     "years_with_30pct_prop_isp1500": 0.14934,
+     "prop_frac_1yr_isp3000": 0.697045,
+     "years_with_30pct_prop_isp3000": 0.29868
+    },
+    "0.500": {
+     "mean_sep_mm_s2": 1.009795,
+     "peak_sep_mm_s2": 1.062538,
+     "dv_km_s_per_yr": 31.866722,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.885403,
+     "years_with_30pct_prop_isp1500": 0.164644,
+     "prop_frac_1yr_isp3000": 0.661478,
+     "years_with_30pct_prop_isp3000": 0.329289
+    },
+    "1.000": {
+     "mean_sep_mm_s2": 0.912988,
+     "peak_sep_mm_s2": 1.002824,
+     "dv_km_s_per_yr": 28.811704,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.858951,
+     "years_with_30pct_prop_isp1500": 0.182102,
+     "prop_frac_1yr_isp3000": 0.624436,
+     "years_with_30pct_prop_isp3000": 0.364205
+    },
+    "1.700": {
+     "mean_sep_mm_s2": 0.825823,
+     "peak_sep_mm_s2": 0.949106,
+     "dv_km_s_per_yr": 26.060996,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.829949,
+     "years_with_30pct_prop_isp1500": 0.201323,
+     "prop_frac_1yr_isp3000": 0.587627,
+     "years_with_30pct_prop_isp3000": 0.402646
+    }
+   }
+  },
+  "min-demand (el>=45, a_c=0.00)": {
+   "a_req_mm_s2": 0.979101,
+   "by_ac": {
+    "0.000": {
+     "mean_sep_mm_s2": 0.979101,
+     "peak_sep_mm_s2": 0.979101,
+     "dv_km_s_per_yr": 30.898092,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.877603,
+     "years_with_30pct_prop_isp1500": 0.169806,
+     "prop_frac_1yr_isp3000": 0.650147,
+     "years_with_30pct_prop_isp3000": 0.339612
+    },
+    "0.123": {
+     "mean_sep_mm_s2": 0.93716,
+     "peak_sep_mm_s2": 0.964865,
+     "dv_km_s_per_yr": 29.574511,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.866079,
+     "years_with_30pct_prop_isp1500": 0.177405,
+     "prop_frac_1yr_isp3000": 0.634048,
+     "years_with_30pct_prop_isp3000": 0.354811
+    },
+    "0.500": {
+     "mean_sep_mm_s2": 0.832904,
+     "peak_sep_mm_s2": 0.931812,
+     "dv_km_s_per_yr": 26.28445,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.832512,
+     "years_with_30pct_prop_isp1500": 0.199612,
+     "prop_frac_1yr_isp3000": 0.590747,
+     "years_with_30pct_prop_isp3000": 0.399223
+    },
+    "1.000": {
+     "mean_sep_mm_s2": 0.739411,
+     "peak_sep_mm_s2": 0.903718,
+     "dv_km_s_per_yr": 23.334046,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.795313,
+     "years_with_30pct_prop_isp1500": 0.224851,
+     "prop_frac_1yr_isp3000": 0.547577,
+     "years_with_30pct_prop_isp3000": 0.449702
+    },
+    "1.700": {
+     "mean_sep_mm_s2": 0.66075,
+     "peak_sep_mm_s2": 0.880414,
+     "dv_km_s_per_yr": 20.85169,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.757686,
+     "years_with_30pct_prop_isp1500": 0.251619,
+     "prop_frac_1yr_isp3000": 0.507746,
+     "years_with_30pct_prop_isp3000": 0.503238
+    }
+   }
+  },
+  "min-demand (el>=45, a_c=0.12)": {
+   "a_req_mm_s2": 0.979101,
+   "by_ac": {
+    "0.000": {
+     "mean_sep_mm_s2": 0.979101,
+     "peak_sep_mm_s2": 0.979101,
+     "dv_km_s_per_yr": 30.898092,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.877603,
+     "years_with_30pct_prop_isp1500": 0.169806,
+     "prop_frac_1yr_isp3000": 0.650147,
+     "years_with_30pct_prop_isp3000": 0.339612
+    },
+    "0.123": {
+     "mean_sep_mm_s2": 0.93716,
+     "peak_sep_mm_s2": 0.964865,
+     "dv_km_s_per_yr": 29.574511,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.866079,
+     "years_with_30pct_prop_isp1500": 0.177405,
+     "prop_frac_1yr_isp3000": 0.634048,
+     "years_with_30pct_prop_isp3000": 0.354811
+    },
+    "0.500": {
+     "mean_sep_mm_s2": 0.832904,
+     "peak_sep_mm_s2": 0.931812,
+     "dv_km_s_per_yr": 26.28445,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.832512,
+     "years_with_30pct_prop_isp1500": 0.199612,
+     "prop_frac_1yr_isp3000": 0.590747,
+     "years_with_30pct_prop_isp3000": 0.399223
+    },
+    "1.000": {
+     "mean_sep_mm_s2": 0.739411,
+     "peak_sep_mm_s2": 0.903718,
+     "dv_km_s_per_yr": 23.334046,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.795313,
+     "years_with_30pct_prop_isp1500": 0.224851,
+     "prop_frac_1yr_isp3000": 0.547577,
+     "years_with_30pct_prop_isp3000": 0.449702
+    },
+    "1.700": {
+     "mean_sep_mm_s2": 0.66075,
+     "peak_sep_mm_s2": 0.880414,
+     "dv_km_s_per_yr": 20.85169,
+     "frac_month_sail_alone_ok": 0.0,
+     "prop_frac_1yr_isp1500": 0.757686,
+     "years_with_30pct_prop_isp1500": 0.251619,
+     "prop_frac_1yr_isp3000": 0.507746,
+     "years_with_30pct_prop_isp3000": 0.503238
+    }
+   }
+  }
+ },
+ "literature": {
+  "Ozimek_2009_kappa_mm_s2": {
+   "low-elevation (4-7 deg) periodic coverage near L1/L2": 0.58,
+   "high elevation / hover-like periodic orbits": 1.7
+  },
+  "Wawrzyniak_Howell_2009": "a0 >= 1.5 mm/s^2 for 15 deg elevation constraint",
+  "Grebow_2010_SEP": "500 kg wet, 150 mN NSTAR-class: 387-554 days of pole-sitting"
+ },
+ "figures": [
+  "q4_hover_requirement.png",
+  "q4_sail_savings_map.png",
+  "q4_sun_phase.png",
+  "q4_mass_vs_duration.png"
+ ]
+}
