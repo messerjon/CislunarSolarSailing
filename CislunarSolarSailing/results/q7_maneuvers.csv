@@ -1,0 +1,13 @@
+maneuver,arch,median_days,min_days,max_days,success,prop_kg,e_final
+GEO inclination 0→5°,Conventional sail,75.0,62.0,95.0,1.0,0.0,0.16495169248448632
+GEO inclination 0→5°,Hybrid (fixed SEP),47.0,41.0,52.0,1.0,2.760164589516606,0.13648972807728926
+GEO inclination 0→5°,Hybrid (gimballed SEP),49.0,40.0,51.0,1.0,2.8776362084301184,0.13554606358133253
+GEO inclination 0→5°,Retractable hybrid,47.5,40.5,54.5,1.0,2.789943558707648,0.11812977170589606
+GEO relocation +1000 km,Conventional sail,5.0,5.0,5.0,1.0,0.0,0.020570267295043895
+GEO relocation +1000 km,Hybrid (fixed SEP),3.0,3.0,3.0,1.0,0.1762069616025883,0.012613932614252893
+GEO relocation +1000 km,Hybrid (gimballed SEP),2.5,2.5,2.5,1.0,0.1468391346688236,0.009464425417947727
+GEO relocation +1000 km,Retractable hybrid,2.5,2.5,2.5,1.0,0.1468391346688236,0.00892834213001524
+LEO 1000 km plane change 5°,Conventional sail,217.75,213.0,222.0,1.0,0.0,0.03347303071854091
+LEO 1000 km plane change 5°,Hybrid (fixed SEP),117.75,115.5,120.0,1.0,4.8377485922736625,0.030995870237779024
+LEO 1000 km plane change 5°,Hybrid (gimballed SEP),105.5,103.5,110.0,1.0,4.331089875562441,0.0314476603780149
+LEO 1000 km plane change 5°,Retractable hybrid,106.75,104.5,111.0,1.0,4.3712505144571665,0.030822167243499024

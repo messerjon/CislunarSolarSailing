@@ -1,0 +1,49 @@
+maneuver,arch,raan_off,done,days,prop_kg,e_final
+GEO inclination 0→5°,Conventional sail,0,True,79.0,0.0,0.16148383253331805
+GEO inclination 0→5°,Conventional sail,90,True,62.0,0.0,0.15849673918792945
+GEO inclination 0→5°,Conventional sail,180,True,71.0,0.0,0.16841955243565462
+GEO inclination 0→5°,Conventional sail,270,True,95.0,0.0,0.18526605138769908
+GEO inclination 0→5°,Hybrid (fixed SEP),0,True,47.5,2.789943558707648,0.14153171009640303
+GEO inclination 0→5°,Hybrid (fixed SEP),90,True,41.0,2.408161808568707,0.11866885044965847
+GEO inclination 0→5°,Hybrid (fixed SEP),180,True,46.5,2.7303856203255634,0.13351290620721007
+GEO inclination 0→5°,Hybrid (fixed SEP),270,True,52.0,3.0542540011115307,0.13946654994736843
+GEO inclination 0→5°,Hybrid (gimballed SEP),0,True,49.5,2.907414866442707,0.13838512311526202
+GEO inclination 0→5°,Hybrid (gimballed SEP),90,True,40.0,2.348666317684362,0.1155896489872689
+GEO inclination 0→5°,Hybrid (gimballed SEP),180,True,48.5,2.8478575504175296,0.13270700404740302
+GEO inclination 0→5°,Hybrid (gimballed SEP),270,True,51.0,2.9955183472440012,0.13964830617657162
+GEO inclination 0→5°,Retractable hybrid,0,True,46.0,2.701840077906354,0.11644075267074758
+GEO inclination 0→5°,Retractable hybrid,90,True,40.5,2.378793981634942,0.11109765255409948
+GEO inclination 0→5°,Retractable hybrid,180,True,49.0,2.8780470395089424,0.11981879074104453
+GEO inclination 0→5°,Retractable hybrid,270,True,54.5,3.2010931357803543,0.14626578137914448
+GEO relocation +1000 km,Conventional sail,0,True,5.0,0.0,0.020559491985527725
+GEO relocation +1000 km,Conventional sail,90,True,5.0,0.0,0.02065768367876134
+GEO relocation +1000 km,Conventional sail,180,True,5.0,0.0,0.020581042604560066
+GEO relocation +1000 km,Conventional sail,270,True,5.0,0.0,0.020477484582609933
+GEO relocation +1000 km,Hybrid (fixed SEP),0,True,3.0,0.1762069616025883,0.012610733865767327
+GEO relocation +1000 km,Hybrid (fixed SEP),90,True,3.0,0.1762069616025883,0.012699856537383578
+GEO relocation +1000 km,Hybrid (fixed SEP),180,True,3.0,0.1762069616025883,0.01261713136273846
+GEO relocation +1000 km,Hybrid (fixed SEP),270,True,3.0,0.1762069616025883,0.012512710306743832
+GEO relocation +1000 km,Hybrid (gimballed SEP),0,True,2.5,0.1468391346688236,0.0094599862174466
+GEO relocation +1000 km,Hybrid (gimballed SEP),90,True,2.5,0.1468391346688236,0.009562229178631976
+GEO relocation +1000 km,Hybrid (gimballed SEP),180,True,2.5,0.1468391346688236,0.009468864618448852
+GEO relocation +1000 km,Hybrid (gimballed SEP),270,True,2.5,0.1468391346688236,0.009367674430283269
+GEO relocation +1000 km,Retractable hybrid,0,True,2.5,0.1468391346688236,0.008924303247659327
+GEO relocation +1000 km,Retractable hybrid,90,True,2.5,0.1468391346688236,0.009012769710087921
+GEO relocation +1000 km,Retractable hybrid,180,True,2.5,0.1468391346688236,0.008932381012371154
+GEO relocation +1000 km,Retractable hybrid,270,True,2.5,0.1468391346688236,0.008815926374465408
+LEO 1000 km plane change 5°,Conventional sail,0,True,218.0,0.0,0.034328365422054766
+LEO 1000 km plane change 5°,Conventional sail,90,True,222.0,0.0,0.03212965987647915
+LEO 1000 km plane change 5°,Conventional sail,180,True,213.0,0.0,0.03261769601502705
+LEO 1000 km plane change 5°,Conventional sail,270,True,217.5,0.0,0.035112459616509197
+LEO 1000 km plane change 5°,Hybrid (fixed SEP),0,True,120.0,4.887013466270588,0.028768695342668408
+LEO 1000 km plane change 5°,Hybrid (fixed SEP),90,True,119.0,4.857699027723356,0.03238305080717776
+LEO 1000 km plane change 5°,Hybrid (fixed SEP),180,True,116.5,4.817798156823969,0.02960868966838029
+LEO 1000 km plane change 5°,Hybrid (fixed SEP),270,True,115.5,4.741205377752394,0.032925073173954635
+LEO 1000 km plane change 5°,Hybrid (gimballed SEP),0,True,105.0,4.3033177646297815,0.03246701278569241
+LEO 1000 km plane change 5°,Hybrid (gimballed SEP),90,True,110.0,4.495749507851784,0.030428307970337385
+LEO 1000 km plane change 5°,Hybrid (gimballed SEP),180,True,103.5,4.280724049845418,0.03376115958464259
+LEO 1000 km plane change 5°,Hybrid (gimballed SEP),270,True,106.0,4.3588619864951,0.029341516173391948
+LEO 1000 km plane change 5°,Retractable hybrid,0,True,106.5,4.346201250939657,0.031337707369586784
+LEO 1000 km plane change 5°,Retractable hybrid,90,True,111.0,4.534703073907721,0.030306627117411264
+LEO 1000 km plane change 5°,Retractable hybrid,180,True,104.5,4.317567296470358,0.033393966775673356
+LEO 1000 km plane change 5°,Retractable hybrid,270,True,107.0,4.396299777974676,0.029287681523691562

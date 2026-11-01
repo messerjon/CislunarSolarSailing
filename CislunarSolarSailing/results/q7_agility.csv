@@ -1,0 +1,13 @@
+arch,metric,value
+Conventional sail,mean envelope accel (mm/s²),0.02479358190439492
+Conventional sail,worst-direction accel (mm/s²),0.0
+Conventional sail,"mean Δv/day, best attitude (m/s)",6.775206424828954
+Hybrid (fixed SEP),mean envelope accel (mm/s²),0.0953996399901277
+Hybrid (fixed SEP),worst-direction accel (mm/s²),0.0
+Hybrid (fixed SEP),"mean Δv/day, best attitude (m/s)",12.111923611386926
+Hybrid (gimballed SEP),mean envelope accel (mm/s²),0.1335917924228263
+Hybrid (gimballed SEP),worst-direction accel (mm/s²),0.051331680688750506
+Hybrid (gimballed SEP),"mean Δv/day, best attitude (m/s)",13.355388290781182
+Retractable hybrid,mean envelope accel (mm/s²),0.13582615164616813
+Retractable hybrid,worst-direction accel (mm/s²),0.10085535320687085
+Retractable hybrid,"mean Δv/day, best attitude (m/s)",13.36627110337458

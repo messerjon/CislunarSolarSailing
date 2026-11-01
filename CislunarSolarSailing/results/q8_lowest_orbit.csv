@@ -1,0 +1,181 @@
+atmosphere,ac_mm_s2,arch,plane,lowest_net_raise_km,lowest_demo_km
+max,0.05,Conventional sail,28.5° (Cape),750.0,800.0
+max,0.05,Conventional sail,51.6° (ISS-like),750.0,800.0
+max,0.05,Conventional sail,SSO dawn-dusk,750.0,850.0
+max,0.05,Double-sided sail,28.5° (Cape),800.0,800.0
+max,0.05,Double-sided sail,51.6° (ISS-like),800.0,850.0
+max,0.05,Double-sided sail,SSO dawn-dusk,800.0,850.0
+max,0.05,Hybrid (gimballed SEP),28.5° (Cape),500.0,500.0
+max,0.05,Hybrid (gimballed SEP),51.6° (ISS-like),500.0,500.0
+max,0.05,Hybrid (gimballed SEP),SSO dawn-dusk,500.0,500.0
+max,0.05,Retractable sail,28.5° (Cape),650.0,800.0
+max,0.05,Retractable sail,51.6° (ISS-like),650.0,750.0
+max,0.05,Retractable sail,SSO dawn-dusk,700.0,800.0
+max,0.1,Conventional sail,28.5° (Cape),750.0,800.0
+max,0.1,Conventional sail,51.6° (ISS-like),750.0,800.0
+max,0.1,Conventional sail,SSO dawn-dusk,750.0,800.0
+max,0.1,Double-sided sail,28.5° (Cape),800.0,800.0
+max,0.1,Double-sided sail,51.6° (ISS-like),800.0,800.0
+max,0.1,Double-sided sail,SSO dawn-dusk,850.0,850.0
+max,0.1,Hybrid (gimballed SEP),28.5° (Cape),550.0,550.0
+max,0.1,Hybrid (gimballed SEP),51.6° (ISS-like),550.0,550.0
+max,0.1,Hybrid (gimballed SEP),SSO dawn-dusk,550.0,550.0
+max,0.1,Retractable sail,28.5° (Cape),650.0,700.0
+max,0.1,Retractable sail,51.6° (ISS-like),650.0,700.0
+max,0.1,Retractable sail,SSO dawn-dusk,650.0,700.0
+max,0.2,Conventional sail,28.5° (Cape),800.0,800.0
+max,0.2,Conventional sail,51.6° (ISS-like),800.0,800.0
+max,0.2,Conventional sail,SSO dawn-dusk,750.0,750.0
+max,0.2,Double-sided sail,28.5° (Cape),800.0,800.0
+max,0.2,Double-sided sail,51.6° (ISS-like),850.0,850.0
+max,0.2,Double-sided sail,SSO dawn-dusk,850.0,850.0
+max,0.2,Hybrid (gimballed SEP),28.5° (Cape),650.0,650.0
+max,0.2,Hybrid (gimballed SEP),51.6° (ISS-like),650.0,650.0
+max,0.2,Hybrid (gimballed SEP),SSO dawn-dusk,600.0,650.0
+max,0.2,Retractable sail,28.5° (Cape),650.0,650.0
+max,0.2,Retractable sail,51.6° (ISS-like),650.0,650.0
+max,0.2,Retractable sail,SSO dawn-dusk,650.0,700.0
+max,0.3,Conventional sail,28.5° (Cape),800.0,800.0
+max,0.3,Conventional sail,51.6° (ISS-like),800.0,850.0
+max,0.3,Conventional sail,SSO dawn-dusk,800.0,800.0
+max,0.3,Double-sided sail,28.5° (Cape),850.0,850.0
+max,0.3,Double-sided sail,51.6° (ISS-like),850.0,850.0
+max,0.3,Double-sided sail,SSO dawn-dusk,850.0,850.0
+max,0.3,Hybrid (gimballed SEP),28.5° (Cape),650.0,650.0
+max,0.3,Hybrid (gimballed SEP),51.6° (ISS-like),650.0,650.0
+max,0.3,Hybrid (gimballed SEP),SSO dawn-dusk,650.0,650.0
+max,0.3,Retractable sail,28.5° (Cape),650.0,650.0
+max,0.3,Retractable sail,51.6° (ISS-like),650.0,650.0
+max,0.3,Retractable sail,SSO dawn-dusk,650.0,700.0
+max,0.5,Conventional sail,28.5° (Cape),850.0,850.0
+max,0.5,Conventional sail,51.6° (ISS-like),850.0,850.0
+max,0.5,Conventional sail,SSO dawn-dusk,800.0,800.0
+max,0.5,Double-sided sail,28.5° (Cape),850.0,850.0
+max,0.5,Double-sided sail,51.6° (ISS-like),850.0,850.0
+max,0.5,Double-sided sail,SSO dawn-dusk,850.0,850.0
+max,0.5,Hybrid (gimballed SEP),28.5° (Cape),700.0,700.0
+max,0.5,Hybrid (gimballed SEP),51.6° (ISS-like),700.0,700.0
+max,0.5,Hybrid (gimballed SEP),SSO dawn-dusk,700.0,700.0
+max,0.5,Retractable sail,28.5° (Cape),600.0,650.0
+max,0.5,Retractable sail,51.6° (ISS-like),650.0,650.0
+max,0.5,Retractable sail,SSO dawn-dusk,650.0,650.0
+min,0.05,Conventional sail,28.5° (Cape),500.0,550.0
+min,0.05,Conventional sail,51.6° (ISS-like),500.0,550.0
+min,0.05,Conventional sail,SSO dawn-dusk,500.0,550.0
+min,0.05,Double-sided sail,28.5° (Cape),550.0,550.0
+min,0.05,Double-sided sail,51.6° (ISS-like),550.0,550.0
+min,0.05,Double-sided sail,SSO dawn-dusk,550.0,550.0
+min,0.05,Hybrid (gimballed SEP),28.5° (Cape),400.0,400.0
+min,0.05,Hybrid (gimballed SEP),51.6° (ISS-like),400.0,400.0
+min,0.05,Hybrid (gimballed SEP),SSO dawn-dusk,400.0,400.0
+min,0.05,Retractable sail,28.5° (Cape),450.0,550.0
+min,0.05,Retractable sail,51.6° (ISS-like),450.0,550.0
+min,0.05,Retractable sail,SSO dawn-dusk,450.0,550.0
+min,0.1,Conventional sail,28.5° (Cape),500.0,550.0
+min,0.1,Conventional sail,51.6° (ISS-like),500.0,550.0
+min,0.1,Conventional sail,SSO dawn-dusk,500.0,550.0
+min,0.1,Double-sided sail,28.5° (Cape),550.0,550.0
+min,0.1,Double-sided sail,51.6° (ISS-like),550.0,550.0
+min,0.1,Double-sided sail,SSO dawn-dusk,550.0,550.0
+min,0.1,Hybrid (gimballed SEP),28.5° (Cape),400.0,400.0
+min,0.1,Hybrid (gimballed SEP),51.6° (ISS-like),400.0,400.0
+min,0.1,Hybrid (gimballed SEP),SSO dawn-dusk,400.0,400.0
+min,0.1,Retractable sail,28.5° (Cape),450.0,500.0
+min,0.1,Retractable sail,51.6° (ISS-like),450.0,500.0
+min,0.1,Retractable sail,SSO dawn-dusk,450.0,500.0
+min,0.2,Conventional sail,28.5° (Cape),500.0,550.0
+min,0.2,Conventional sail,51.6° (ISS-like),500.0,550.0
+min,0.2,Conventional sail,SSO dawn-dusk,500.0,500.0
+min,0.2,Double-sided sail,28.5° (Cape),550.0,550.0
+min,0.2,Double-sided sail,51.6° (ISS-like),550.0,550.0
+min,0.2,Double-sided sail,SSO dawn-dusk,550.0,550.0
+min,0.2,Hybrid (gimballed SEP),28.5° (Cape),450.0,450.0
+min,0.2,Hybrid (gimballed SEP),51.6° (ISS-like),450.0,450.0
+min,0.2,Hybrid (gimballed SEP),SSO dawn-dusk,450.0,450.0
+min,0.2,Retractable sail,28.5° (Cape),450.0,450.0
+min,0.2,Retractable sail,51.6° (ISS-like),450.0,450.0
+min,0.2,Retractable sail,SSO dawn-dusk,450.0,500.0
+min,0.3,Conventional sail,28.5° (Cape),550.0,550.0
+min,0.3,Conventional sail,51.6° (ISS-like),550.0,550.0
+min,0.3,Conventional sail,SSO dawn-dusk,500.0,500.0
+min,0.3,Double-sided sail,28.5° (Cape),550.0,550.0
+min,0.3,Double-sided sail,51.6° (ISS-like),550.0,550.0
+min,0.3,Double-sided sail,SSO dawn-dusk,550.0,550.0
+min,0.3,Hybrid (gimballed SEP),28.5° (Cape),450.0,450.0
+min,0.3,Hybrid (gimballed SEP),51.6° (ISS-like),450.0,450.0
+min,0.3,Hybrid (gimballed SEP),SSO dawn-dusk,450.0,450.0
+min,0.3,Retractable sail,28.5° (Cape),450.0,450.0
+min,0.3,Retractable sail,51.6° (ISS-like),450.0,450.0
+min,0.3,Retractable sail,SSO dawn-dusk,450.0,450.0
+min,0.5,Conventional sail,28.5° (Cape),550.0,550.0
+min,0.5,Conventional sail,51.6° (ISS-like),550.0,550.0
+min,0.5,Conventional sail,SSO dawn-dusk,500.0,500.0
+min,0.5,Double-sided sail,28.5° (Cape),550.0,550.0
+min,0.5,Double-sided sail,51.6° (ISS-like),550.0,550.0
+min,0.5,Double-sided sail,SSO dawn-dusk,550.0,550.0
+min,0.5,Hybrid (gimballed SEP),28.5° (Cape),500.0,500.0
+min,0.5,Hybrid (gimballed SEP),51.6° (ISS-like),500.0,500.0
+min,0.5,Hybrid (gimballed SEP),SSO dawn-dusk,500.0,500.0
+min,0.5,Retractable sail,28.5° (Cape),450.0,450.0
+min,0.5,Retractable sail,51.6° (ISS-like),450.0,450.0
+min,0.5,Retractable sail,SSO dawn-dusk,450.0,450.0
+moderate,0.05,Conventional sail,28.5° (Cape),600.0,650.0
+moderate,0.05,Conventional sail,51.6° (ISS-like),600.0,650.0
+moderate,0.05,Conventional sail,SSO dawn-dusk,600.0,650.0
+moderate,0.05,Double-sided sail,28.5° (Cape),650.0,650.0
+moderate,0.05,Double-sided sail,51.6° (ISS-like),650.0,650.0
+moderate,0.05,Double-sided sail,SSO dawn-dusk,650.0,650.0
+moderate,0.05,Hybrid (gimballed SEP),28.5° (Cape),450.0,450.0
+moderate,0.05,Hybrid (gimballed SEP),51.6° (ISS-like),450.0,450.0
+moderate,0.05,Hybrid (gimballed SEP),SSO dawn-dusk,450.0,450.0
+moderate,0.05,Retractable sail,28.5° (Cape),550.0,650.0
+moderate,0.05,Retractable sail,51.6° (ISS-like),550.0,650.0
+moderate,0.05,Retractable sail,SSO dawn-dusk,550.0,650.0
+moderate,0.1,Conventional sail,28.5° (Cape),600.0,650.0
+moderate,0.1,Conventional sail,51.6° (ISS-like),600.0,650.0
+moderate,0.1,Conventional sail,SSO dawn-dusk,600.0,600.0
+moderate,0.1,Double-sided sail,28.5° (Cape),650.0,650.0
+moderate,0.1,Double-sided sail,51.6° (ISS-like),650.0,650.0
+moderate,0.1,Double-sided sail,SSO dawn-dusk,650.0,650.0
+moderate,0.1,Hybrid (gimballed SEP),28.5° (Cape),450.0,450.0
+moderate,0.1,Hybrid (gimballed SEP),51.6° (ISS-like),450.0,500.0
+moderate,0.1,Hybrid (gimballed SEP),SSO dawn-dusk,450.0,450.0
+moderate,0.1,Retractable sail,28.5° (Cape),500.0,550.0
+moderate,0.1,Retractable sail,51.6° (ISS-like),500.0,550.0
+moderate,0.1,Retractable sail,SSO dawn-dusk,550.0,600.0
+moderate,0.2,Conventional sail,28.5° (Cape),600.0,600.0
+moderate,0.2,Conventional sail,51.6° (ISS-like),600.0,600.0
+moderate,0.2,Conventional sail,SSO dawn-dusk,600.0,600.0
+moderate,0.2,Double-sided sail,28.5° (Cape),650.0,650.0
+moderate,0.2,Double-sided sail,51.6° (ISS-like),650.0,650.0
+moderate,0.2,Double-sided sail,SSO dawn-dusk,650.0,650.0
+moderate,0.2,Hybrid (gimballed SEP),28.5° (Cape),500.0,500.0
+moderate,0.2,Hybrid (gimballed SEP),51.6° (ISS-like),500.0,500.0
+moderate,0.2,Hybrid (gimballed SEP),SSO dawn-dusk,500.0,500.0
+moderate,0.2,Retractable sail,28.5° (Cape),500.0,550.0
+moderate,0.2,Retractable sail,51.6° (ISS-like),500.0,550.0
+moderate,0.2,Retractable sail,SSO dawn-dusk,550.0,550.0
+moderate,0.3,Conventional sail,28.5° (Cape),600.0,650.0
+moderate,0.3,Conventional sail,51.6° (ISS-like),650.0,650.0
+moderate,0.3,Conventional sail,SSO dawn-dusk,600.0,600.0
+moderate,0.3,Double-sided sail,28.5° (Cape),650.0,650.0
+moderate,0.3,Double-sided sail,51.6° (ISS-like),650.0,650.0
+moderate,0.3,Double-sided sail,SSO dawn-dusk,650.0,650.0
+moderate,0.3,Hybrid (gimballed SEP),28.5° (Cape),550.0,550.0
+moderate,0.3,Hybrid (gimballed SEP),51.6° (ISS-like),550.0,550.0
+moderate,0.3,Hybrid (gimballed SEP),SSO dawn-dusk,550.0,550.0
+moderate,0.3,Retractable sail,28.5° (Cape),500.0,550.0
+moderate,0.3,Retractable sail,51.6° (ISS-like),500.0,550.0
+moderate,0.3,Retractable sail,SSO dawn-dusk,550.0,550.0
+moderate,0.5,Conventional sail,28.5° (Cape),650.0,650.0
+moderate,0.5,Conventional sail,51.6° (ISS-like),650.0,650.0
+moderate,0.5,Conventional sail,SSO dawn-dusk,600.0,600.0
+moderate,0.5,Double-sided sail,28.5° (Cape),650.0,650.0
+moderate,0.5,Double-sided sail,51.6° (ISS-like),650.0,650.0
+moderate,0.5,Double-sided sail,SSO dawn-dusk,650.0,650.0
+moderate,0.5,Hybrid (gimballed SEP),28.5° (Cape),550.0,550.0
+moderate,0.5,Hybrid (gimballed SEP),51.6° (ISS-like),550.0,550.0
+moderate,0.5,Hybrid (gimballed SEP),SSO dawn-dusk,550.0,550.0
+moderate,0.5,Retractable sail,28.5° (Cape),500.0,500.0
+moderate,0.5,Retractable sail,51.6° (ISS-like),500.0,550.0
+moderate,0.5,Retractable sail,SSO dawn-dusk,550.0,550.0

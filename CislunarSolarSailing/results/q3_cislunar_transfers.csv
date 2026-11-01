@@ -1,0 +1,33 @@
+src,dst,arch,best_days,median_days,sun_phases_solved,sun_phases_tried
+DRO,L1 halo,Conventional sail,28.0,34.0,4.0,4.0
+DRO,L1 halo,Hybrid (gimballed SEP),20.0,24.0,4.0,4.0
+DRO,L2 halo,Conventional sail,20.0,24.0,4.0,4.0
+DRO,L2 halo,Hybrid (gimballed SEP),20.0,20.0,4.0,4.0
+DRO,L4,Hybrid (gimballed SEP),28.0,48.0,4.0,4.0
+L1 halo,DRO,Conventional sail,28.0,40.0,4.0,4.0
+L1 halo,DRO,Hybrid (gimballed SEP),20.0,20.0,4.0,4.0
+L1 halo,L2 halo,Conventional sail,28.0,34.0,4.0,4.0
+L1 halo,L2 halo,Hybrid (gimballed SEP),14.0,28.0,4.0,4.0
+L1 halo,L4,Hybrid (gimballed SEP),80.0,96.0,2.0,4.0
+L1 halo,L5,Hybrid (gimballed SEP),80.0,112.0,3.0,4.0
+L2 halo,DRO,Conventional sail,20.0,34.0,4.0,4.0
+L2 halo,DRO,Hybrid (gimballed SEP),14.0,20.0,4.0,4.0
+L2 halo,L1 halo,Conventional sail,28.0,40.0,4.0,4.0
+L2 halo,L1 halo,Hybrid (gimballed SEP),20.0,28.0,4.0,4.0
+L2 halo,L5,Conventional sail,112.0,136.0,2.0,4.0
+L2 halo,L5,Hybrid (gimballed SEP),40.0,56.0,4.0,4.0
+L4,L1 halo,Hybrid (gimballed SEP),112.0,112.0,1.0,4.0
+L4,L2 halo,Conventional sail,112.0,112.0,1.0,4.0
+L4,L2 halo,Hybrid (gimballed SEP),40.0,48.0,4.0,4.0
+L5,DRO,Hybrid (gimballed SEP),28.0,48.0,4.0,4.0
+L5,L1 halo,Hybrid (gimballed SEP),80.0,96.0,2.0,4.0
+L1 halo,LLO (≈),Conventional sail,875.5,931.25,,
+L2 halo,LLO (≈),Conventional sail,867.5,925.25,,
+DRO,LLO (≈),Conventional sail,847.5,891.25,,
+L4,LLO (≈),Conventional sail,,,,
+L5,LLO (≈),Conventional sail,,,,
+L1 halo,LLO (≈),Hybrid (gimballed SEP),392.0,429.25,,
+L2 halo,LLO (≈),Hybrid (gimballed SEP),386.0,429.25,,
+DRO,LLO (≈),Hybrid (gimballed SEP),372.0,409.25,,
+L4,LLO (≈),Hybrid (gimballed SEP),,,,
+L5,LLO (≈),Hybrid (gimballed SEP),400.0,457.25,,

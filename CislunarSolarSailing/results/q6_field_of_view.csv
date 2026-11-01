@@ -1,0 +1,231 @@
+orbit,target,placement,gimbal_deg,coverage
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,0,0.014795524691358026
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,5,0.030246913580246913
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,10,0.04926697530864198
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,15,0.0714891975308642
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,20,0.09782021604938272
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,25,0.12766203703703705
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,30,0.15675154320987655
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,35,0.18784722222222222
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,40,0.22218364197530865
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,45,0.25580632716049384
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,50,0.28888888888888886
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,55,0.32253086419753085
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,60,0.3554976851851852
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,65,0.38798225308641976
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,70,0.42060185185185184
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,75,0.4519675925925926
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,80,0.4519675925925926
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,85,0.4519675925925926
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus behind sail,90,0.4519675925925926
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,0,0.01726466049382716
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,5,0.03543595679012346
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,10,0.0570216049382716
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,15,0.08352623456790123
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,20,0.11145833333333334
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,25,0.14255401234567902
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,30,0.17417052469135802
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,35,0.20823688271604937
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,40,0.24446373456790124
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,45,0.28036265432098767
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,50,0.3170524691358025
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,55,0.35140817901234567
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,60,0.38528163580246916
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,65,0.4173225308641975
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,70,0.4503086419753086
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,75,0.482445987654321
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,80,0.482445987654321
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,85,0.482445987654321
+L2 halo Az 15k km,"Earth (antenna, 20° beam)",Bus in front of sail,90,0.482445987654321
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,0,0.005324074074074074
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,5,0.020929783950617283
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,10,0.0421875
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,15,0.0652391975308642
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,20,0.090625
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,25,0.1177662037037037
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,30,0.1480516975308642
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,35,0.17907021604938272
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,40,0.21236496913580247
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,45,0.2463155864197531
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,50,0.2807098765432099
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,55,0.3132523148148148
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,60,0.34371141975308644
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,65,0.3701003086419753
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,70,0.3934413580246914
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,75,0.41749614197530865
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,80,0.4411844135802469
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,85,0.4411844135802469
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus behind sail,90,0.4411844135802469
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,0,0.00625
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,5,0.02484567901234568
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,10,0.052256944444444446
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,15,0.08196373456790124
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,20,0.11487268518518519
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,25,0.15042438271604938
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,30,0.18655478395061728
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,35,0.2236496913580247
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,40,0.2605324074074074
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,45,0.29780092592592594
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,50,0.3334104938271605
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,55,0.3697723765432099
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,60,0.40318287037037037
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,65,0.4327932098765432
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,70,0.459008487654321
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,75,0.48489583333333336
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,80,0.5089891975308642
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,85,0.5089891975308642
+L2 halo Az 15k km,"Moon (camera, 10° FOV)",Bus in front of sail,90,0.5089891975308642
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,0,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,5,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,10,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,15,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,20,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,25,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,30,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,35,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,40,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,45,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,50,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,55,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,60,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,65,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,70,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,75,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,80,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,85,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus behind sail,90,0.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,0,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,5,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,10,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,15,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,20,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,25,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,30,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,35,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,40,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,45,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,50,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,55,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,60,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,65,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,70,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,75,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,80,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,85,1.0
+L2 halo Az 15k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,90,1.0
+L2 halo Az 15k km,Sail-mounted thin-film array (power fraction),On sail,0,0.8267406702534722
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,0,0.05607638888888889
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,5,0.10154320987654321
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,10,0.1513695987654321
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,15,0.20179398148148148
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,20,0.2552854938271605
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,25,0.31045524691358023
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,30,0.36554783950617287
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,35,0.4217399691358025
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,40,0.476195987654321
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,45,0.5276813271604939
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,50,0.5733989197530864
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,55,0.6051504629629629
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,60,0.630420524691358
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,65,0.6528742283950617
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,70,0.6739583333333333
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,75,0.6949266975308642
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,80,0.6949266975308642
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,85,0.6949266975308642
+DRO 70k km,"Earth (antenna, 20° beam)",Bus behind sail,90,0.6949266975308642
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,0,0.009432870370370371
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,5,0.019135802469135803
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,10,0.031655092592592596
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,15,0.046566358024691355
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,20,0.062114197530864196
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,25,0.07920524691358025
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,30,0.09741512345679013
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,35,0.11772762345679012
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,40,0.13638117283950618
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,45,0.15574845679012345
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,50,0.1755594135802469
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,55,0.19490740740740742
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,60,0.21439043209876543
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,65,0.23271604938271606
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,70,0.2500192901234568
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,75,0.2679976851851852
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,80,0.2679976851851852
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,85,0.2679976851851852
+DRO 70k km,"Earth (antenna, 20° beam)",Bus in front of sail,90,0.2679976851851852
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,0,0.01712962962962963
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,5,0.052237654320987655
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,10,0.09469521604938272
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,15,0.1439236111111111
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,20,0.19652777777777777
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,25,0.2536844135802469
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,30,0.3109760802469136
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,35,0.36929012345679013
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,40,0.42660108024691357
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,45,0.4810570987654321
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,50,0.5341242283950617
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,55,0.582908950617284
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,60,0.6196373456790123
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,65,0.6503086419753087
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,70,0.6778742283950617
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,75,0.6991512345679012
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,80,0.7192708333333333
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,85,0.7192708333333333
+DRO 70k km,"Moon (camera, 10° FOV)",Bus behind sail,90,0.7192708333333333
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,0,0.0033564814814814816
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,5,0.010320216049382717
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,10,0.020717592592592593
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,15,0.0339891975308642
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,20,0.047839506172839504
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,25,0.06379243827160494
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,30,0.08070987654320988
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,35,0.09913194444444444
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,40,0.1171875
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,45,0.13501157407407408
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,50,0.15183256172839507
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,55,0.16792052469135801
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,60,0.18346836419753088
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,65,0.19913194444444443
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,70,0.21383101851851852
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,75,0.22974537037037038
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,80,0.2461033950617284
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,85,0.2461033950617284
+DRO 70k km,"Moon (camera, 10° FOV)",Bus in front of sail,90,0.2461033950617284
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,0,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,5,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,10,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,15,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,20,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,25,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,30,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,35,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,40,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,45,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,50,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,55,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,60,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,65,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,70,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,75,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,80,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,85,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus behind sail,90,0.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,0,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,5,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,10,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,15,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,20,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,25,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,30,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,35,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,40,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,45,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,50,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,55,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,60,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,65,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,70,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,75,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,80,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,85,1.0
+DRO 70k km,"Sun (body-mounted array, ±60°)",Bus in front of sail,90,1.0
+DRO 70k km,Sail-mounted thin-film array (power fraction),On sail,0,0.8267406702534722
