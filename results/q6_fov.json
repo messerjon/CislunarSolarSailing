@@ -1,0 +1,137 @@
+{
+ "assumptions": {
+  "obstruction_deg_from_face_normal": 85.0,
+  "roll_free_about_normal": true,
+  "demand_models": {
+   "maneuver": "isotropic random thrust demand, new every 12 h",
+   "energy": "Jacobi-constant change along rotating-frame velocity"
+  }
+ },
+ "access": {
+  "DRO 70k / maneuver": {
+   "Earth (HGA, 10 deg beam)": {
+    "Fixed, boresight on sail normal": 0.029661,
+    "Fixed, best tilt (design-time)": 0.186441,
+    "Gimbal +/-30 deg": 0.216102,
+    "Gimbal +/-60 deg": 0.385593,
+    "Gimbal +/-90 deg (hemisphere)": 0.474576
+   },
+   "Lunar south pole (camera, 10 deg)": {
+    "Fixed, boresight on sail normal": 0.012712,
+    "Fixed, best tilt (design-time)": 0.146186,
+    "Gimbal +/-30 deg": 0.17161,
+    "Gimbal +/-60 deg": 0.368644,
+    "Gimbal +/-90 deg (hemisphere)": 0.478814
+   },
+   "SDA field, anti-Sun hemisphere (camera, 15 deg)": {
+    "Fixed, boresight on sail normal": 0.027542,
+    "Fixed, best tilt (design-time)": 0.40678,
+    "Gimbal +/-30 deg": 0.294492,
+    "Gimbal +/-60 deg": 0.650424,
+    "Gimbal +/-90 deg (hemisphere)": 0.771186
+   },
+   "Solar array power (fraction of max)": {
+    "Fixed, boresight on sail normal": 0.751759,
+    "Fixed, best tilt (design-time)": 0.751759,
+    "Gimbal +/-30 deg": 0.938991,
+    "Gimbal +/-60 deg": 0.990283,
+    "Gimbal +/-90 deg (hemisphere)": 1.0
+   }
+  },
+  "DRO 70k / energy": {
+   "Earth (HGA, 10 deg beam)": {
+    "Fixed, boresight on sail normal": 0.050847,
+    "Fixed, best tilt (design-time)": 0.099576,
+    "Gimbal +/-30 deg": 0.190678,
+    "Gimbal +/-60 deg": 0.319915,
+    "Gimbal +/-90 deg (hemisphere)": 0.385593
+   },
+   "Lunar south pole (camera, 10 deg)": {
+    "Fixed, boresight on sail normal": 0.03178,
+    "Fixed, best tilt (design-time)": 0.139831,
+    "Gimbal +/-30 deg": 0.192797,
+    "Gimbal +/-60 deg": 0.341102,
+    "Gimbal +/-90 deg (hemisphere)": 0.372881
+   },
+   "SDA field, anti-Sun hemisphere (camera, 15 deg)": {
+    "Fixed, boresight on sail normal": 0.042373,
+    "Fixed, best tilt (design-time)": 0.300847,
+    "Gimbal +/-30 deg": 0.254237,
+    "Gimbal +/-60 deg": 0.552966,
+    "Gimbal +/-90 deg (hemisphere)": 0.661017
+   },
+   "Solar array power (fraction of max)": {
+    "Fixed, boresight on sail normal": 0.628627,
+    "Fixed, best tilt (design-time)": 0.628627,
+    "Gimbal +/-30 deg": 0.862279,
+    "Gimbal +/-60 deg": 0.970409,
+    "Gimbal +/-90 deg (hemisphere)": 1.0
+   }
+  },
+  "NRHO 9:2 / maneuver": {
+   "Earth (HGA, 10 deg beam)": {
+    "Fixed, boresight on sail normal": 0.027542,
+    "Fixed, best tilt (design-time)": 0.163136,
+    "Gimbal +/-30 deg": 0.167373,
+    "Gimbal +/-60 deg": 0.355932,
+    "Gimbal +/-90 deg (hemisphere)": 0.46822
+   },
+   "Lunar south pole (camera, 10 deg)": {
+    "Fixed, boresight on sail normal": 0.004237,
+    "Fixed, best tilt (design-time)": 0.224576,
+    "Gimbal +/-30 deg": 0.061441,
+    "Gimbal +/-60 deg": 0.245763,
+    "Gimbal +/-90 deg (hemisphere)": 0.434322
+   },
+   "SDA field, anti-Sun hemisphere (camera, 15 deg)": {
+    "Fixed, boresight on sail normal": 0.027542,
+    "Fixed, best tilt (design-time)": 0.40678,
+    "Gimbal +/-30 deg": 0.294492,
+    "Gimbal +/-60 deg": 0.650424,
+    "Gimbal +/-90 deg (hemisphere)": 0.771186
+   },
+   "Solar array power (fraction of max)": {
+    "Fixed, boresight on sail normal": 0.751759,
+    "Fixed, best tilt (design-time)": 0.751759,
+    "Gimbal +/-30 deg": 0.938991,
+    "Gimbal +/-60 deg": 0.990283,
+    "Gimbal +/-90 deg (hemisphere)": 1.0
+   }
+  },
+  "NRHO 9:2 / energy": {
+   "Earth (HGA, 10 deg beam)": {
+    "Fixed, boresight on sail normal": 0.002119,
+    "Fixed, best tilt (design-time)": 0.180085,
+    "Gimbal +/-30 deg": 0.135593,
+    "Gimbal +/-60 deg": 0.364407,
+    "Gimbal +/-90 deg (hemisphere)": 0.472458
+   },
+   "Lunar south pole (camera, 10 deg)": {
+    "Fixed, boresight on sail normal": 0.002119,
+    "Fixed, best tilt (design-time)": 0.230932,
+    "Gimbal +/-30 deg": 0.103814,
+    "Gimbal +/-60 deg": 0.277542,
+    "Gimbal +/-90 deg (hemisphere)": 0.46822
+   },
+   "SDA field, anti-Sun hemisphere (camera, 15 deg)": {
+    "Fixed, boresight on sail normal": 0.036017,
+    "Fixed, best tilt (design-time)": 0.385593,
+    "Gimbal +/-30 deg": 0.245763,
+    "Gimbal +/-60 deg": 0.627119,
+    "Gimbal +/-90 deg (hemisphere)": 0.735169
+   },
+   "Solar array power (fraction of max)": {
+    "Fixed, boresight on sail normal": 0.776641,
+    "Fixed, best tilt (design-time)": 0.776641,
+    "Gimbal +/-30 deg": 0.966205,
+    "Gimbal +/-60 deg": 0.99707,
+    "Gimbal +/-90 deg (hemisphere)": 1.0
+   }
+  }
+ },
+ "figures": [
+  "q6_fov_access.png",
+  "q6_target_angles.png",
+  "q6_fov_schematic_3d.png"
+ ]
+}

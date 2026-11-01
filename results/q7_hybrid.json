@@ -1,0 +1,123 @@
+{
+ "envelopes": [
+  {
+   "design": "CR-S",
+   "a_c_mm_s2": 0.122794,
+   "a_sep_mm_s2": 0.0,
+   "away_from_sun": 0.122794,
+   "perpendicular": 0.042703,
+   "toward_sun": 0.0,
+   "isotropic_mean": 0.048193
+  },
+  {
+   "design": "CR-H",
+   "a_c_mm_s2": 0.104047,
+   "a_sep_mm_s2": 0.152672,
+   "away_from_sun": 0.256719,
+   "perpendicular": 0.180723,
+   "toward_sun": 0.115652,
+   "isotropic_mean": 0.186897
+  },
+  {
+   "design": "CR-A",
+   "a_c_mm_s2": 0.274857,
+   "a_sep_mm_s2": 0.0,
+   "away_from_sun": 0.274857,
+   "perpendicular": 0.095585,
+   "toward_sun": 0.0,
+   "isotropic_mean": 0.107874
+  }
+ ],
+ "reachable_stats": {
+  "CR-S sail": {
+   "3": {
+    "max_disp_km": 4406.227487,
+    "max_sunward_km": 2.388286,
+    "max_antisun_km": 3725.554543,
+    "max_out_of_plane_km": 1251.739885
+   },
+   "7": {
+    "max_disp_km": 22224.36269,
+    "max_sunward_km": 11055.611447,
+    "max_antisun_km": 8543.816671,
+    "max_out_of_plane_km": 5151.677895
+   }
+  },
+  "CR-H hybrid": {
+   "3": {
+    "max_disp_km": 9401.73118,
+    "max_sunward_km": 5293.98437,
+    "max_antisun_km": 8699.117342,
+    "max_out_of_plane_km": 5536.261811
+   },
+   "7": {
+    "max_disp_km": 48877.695428,
+    "max_sunward_km": 43220.259564,
+    "max_antisun_km": 47232.010445,
+    "max_out_of_plane_km": 22626.091697
+   }
+  }
+ },
+ "response_days": {
+  "CR-S": {
+   "10_at_0": 0.942559,
+   "10_at_90": 2.710341,
+   "10_at_180": null,
+   "50_at_0": 4.712795,
+   "50_at_90": 13.551704,
+   "50_at_180": null
+  },
+  "CR-H": {
+   "10_at_0": 0.450847,
+   "10_at_90": 0.640433,
+   "10_at_180": 1.000764,
+   "50_at_0": 2.254233,
+   "50_at_90": 3.202165,
+   "50_at_180": 5.003818
+  }
+ },
+ "mass_trade": {
+  "dv_tot_km_s": [
+   0.0,
+   7.5,
+   15.0
+  ],
+  "SEP only": [
+   72.513031,
+   129.339999,
+   244.343296
+  ],
+  "Hybrid (CR-H class)": [
+   105.380323,
+   116.630246,
+   129.215035
+  ],
+  "Sail only (CR-S class)": [
+   92.867293,
+   92.867293,
+   92.867293
+  ],
+  "notes": {
+   "bus_kg": 60.0,
+   "sail_system_kg": 32.867293,
+   "sep_dry_kg": 12.513031,
+   "isp_s": 1500.0,
+   "in_irons_fraction": 0.18,
+   "hybrid_beats_sep_above_km_s": 6.705769,
+   "sail_beats_sep_above_km_s": 3.639325
+  }
+ },
+ "hybrid_beats_sep_above_cumulative_dv_km_s": 6.705769,
+ "annual_dv_km_s": {
+  "CR-S isotropic-mean": 1.520863,
+  "CR-H isotropic-mean (SEP always on)": 5.898013,
+  "CR-H SEP propellant-limited total": 0.689656
+ },
+ "figures": [
+  "q7_acceleration_envelope.png",
+  "q7_reachable_2d.png",
+  "q7_reachable_3d.png",
+  "q7_response_time.png",
+  "q7_mass_trade.png"
+ ]
+}

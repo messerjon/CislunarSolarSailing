@@ -1,0 +1,92 @@
+{
+ "thermal_peak_C": {
+  "Al/CP1 2.5 um (NEA Scout, Solar Cruiser)": -9.929872,
+  "Al/PEN/Cr 2.1 um (ACS3)": -24.707174,
+  "Al/CP1/Al double-sided 2.5 um": 138.811764
+ },
+ "efficiency": {
+  "Al/CP1 2.5 um (NEA Scout, Solar Cruiser)": 0.908156,
+  "Al/PEN/Cr 2.1 um (ACS3)": 0.893175,
+  "Al/CP1/Al double-sided 2.5 um": 0.934456,
+  "Al/Mylar 4.5 um (LightSail 2)": 0.911764
+ },
+ "rcd": {
+  "arm_m": 22.99913,
+  "pitch_2pct_at_0": 0.000505,
+  "pitch_2pct_at_40": 0.000208,
+  "roll_2pct_at_17": 6.4e-05,
+  "amt_10cm": 0.001363,
+  "gimbal_30deg": 0.004089,
+  "disturbance": {
+   "1 cm": 0.000136,
+   "5 cm": 0.000682,
+   "10 cm": 0.001363
+  },
+  "sc_roll_req": 3e-05,
+  "momentum_per_day_5cm_Nms": 58.882261
+ },
+ "reefing": {
+  "fixed_area_sail": 0.02285,
+  "reefable_sail": 0.10775,
+  "hybrid_CR-H": 1.0,
+  "max_force_cone_deg": 55.485829
+ },
+ "sail_system_mass_rigid": {
+  "ACS3": {
+   "membrane": 0.34,
+   "booms": 0.551389,
+   "deployer": 6.14,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 7.031389
+  },
+  "SC": {
+   "membrane": 6.90954,
+   "booms": 7.233753,
+   "deployer": 18.724,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 32.867293
+  },
+  "CR-A": {
+   "membrane": 7.2,
+   "booms": 15.331432,
+   "deployer": 37.5,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 60.031432
+  }
+ },
+ "sail_system_mass_spin": {
+  "ACS3": {
+   "membrane": 0.408,
+   "booms": 1.16,
+   "deployer": 3.32,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 4.888
+  },
+  "SC": {
+   "membrane": 8.291448,
+   "booms": 4.306,
+   "deployer": 9.612,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 22.209448
+  },
+  "CR-A": {
+   "membrane": 8.64,
+   "booms": 9.0,
+   "deployer": 19.0,
+   "rcd": 0.0,
+   "retraction": 0.0,
+   "total": 36.64
+  }
+ },
+ "figures": [
+  "dt_ac_vs_area.png",
+  "dt_thermal_single_double.png",
+  "dt_momentum_actuators.png",
+  "dt_reefing.png"
+ ]
+}
