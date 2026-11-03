@@ -140,6 +140,9 @@
     document.querySelectorAll("[data-earthorbit]").forEach(function (el) { el.hidden = !earth; });
     $("raanBox").hidden = !earth || $("raanMode").value !== "manual";
     $("launchLbl").textContent = kind === "CIS" ? "Start date" : "Launch date";
+    var mount = $("antMount").value;
+    document.querySelectorAll("[data-antfixed]").forEach(function (el) { el.hidden = mount !== "fixed"; });
+    document.querySelectorAll("[data-antface]").forEach(function (el) { el.hidden = mount === "ideal"; });
     var s2 = $("stop2").value !== "none", s3 = s2 && $("stop3").value !== "none";
     document.querySelectorAll("[data-leg2]").forEach(function (el) { el.hidden = !s2; });
     document.querySelectorAll("[data-leg3]").forEach(function (el) { el.hidden = !s3; });
@@ -184,6 +187,7 @@
     form.addEventListener("submit", function (ev) { ev.preventDefault(); runNow(); });
     form.addEventListener("input", function (ev) {
       var id = ev.target.id;
+      if (ev.target.closest("[data-payload]")) { syncVisibility(); payloadChanged(); return; }
       if (["mass", "area", "film", "sepOn", "sepThrust", "isp", "prop", "gimbal", "deployAlt"].indexOf(id) >= 0) $("preset").value = "custom";
       if (id === "inc") syncSite();
       syncDerived();
@@ -191,6 +195,7 @@
     });
     form.addEventListener("change", function (ev) {
       var id = ev.target.id;
+      if (ev.target.closest("[data-payload]")) { syncVisibility(); payloadChanged(); return; }
       if (id === "preset") { applyPreset(ev.target.value); syncDerived(); }
       if (id === "orbit") { var inc = ORBIT_INC[ev.target.value]; if (inc != null) { $("inc").value = inc; syncSite(); } }
       if (id === "site" && ev.target.value !== "") $("inc").value = ev.target.value;
@@ -284,6 +289,7 @@
       : statusShort(res) + " on day " + fmt(res.tEnd), 1);
     G = buildDisplayData(res);
     renderTiles(); renderTimeline(); renderPhaseTable(); renderLegTable(); renderCharts(); drawMatrix();
+    computePayload(); renderPayload();
     var b = $("banner"); b.hidden = ok; b.innerHTML = ""; if (!ok) { var s = document.createElement("b"); s.textContent = statusShort(res) + ". "; b.appendChild(s); b.appendChild(document.createTextNode(statusText(res))); }
     if (HAS3D) buildScene(res);
     var lastLeg = res.legs && res.legs.length ? res.legs[res.legs.length - 1] : null;
@@ -491,7 +497,7 @@
   function setZoom(z) {
     zoom = z;
     document.querySelectorAll("[data-zoom]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-zoom") === z)); });
-    if (R) { renderTimeline(); renderCharts(); setTime(clamp(playT, tWin()[0], tWin()[1])); }
+    if (R) { renderTimeline(); renderCharts(); computePayload(); renderPayload(); setTime(clamp(playT, tWin()[0], tWin()[1])); }
     if (S && R) {                       // cislunar legs read best in the Earth-Moon rotating frame, centred on the Moon
       if (z === "cis") {
         var keys = (R.origin ? [R.origin.key] : []).concat((R.summary.legs || []).map(function (l) { return l.to; }));
@@ -514,8 +520,8 @@
     $("tlday").innerHTML = "";
     var b = document.createElement("b"); b.textContent = "Day " + fmt(playT, 1);
     $("tlday").appendChild(b); $("tlday").appendChild(document.createTextNode(isoDay(jd)));
-    chartDist.setCursor(playT); chartC.setCursor(playT);
-    markChips();
+    chartDist.setCursor(playT); chartC.setCursor(playT); if (chartLink) chartLink.setCursor(playT);
+    markChips(); renderLinkNow(!playing);
     dirty = true;
   }
 
@@ -678,7 +684,7 @@
   };
   Chart.prototype.hideTip = function () { if (this.tip) this.tip.hidden = true; if (this.cross) this.cross.style.display = "none"; };
 
-  var chartDist, chartC, chartScan;
+  var chartDist, chartC, chartScan, chartLink;
 
   function thin(n) { return Math.max(1, Math.floor(n / 1400)); }
 
@@ -858,6 +864,229 @@
       }, function () { matrix.cells[o + ">" + d] = { days: null, status: "error" }; i++; setTimeout(next, 0); }, function (tk) { return tk === matrix.token; });
     }
     next();
+  }
+
+
+  // ------------------------------------------------------------------ payload: fields of view and S-band link
+  var ANT = {
+    patch:  { name: "Patch",      gain: 6.0,  hpbw: 70.0 },
+    helix:  { name: "Helix",      gain: 12.0, hpbw: 40.0 },
+    dish05: { name: "0.5 m dish", gain: 18.8, hpbw: 18.7 },
+    dish1:  { name: "1 m dish",   gain: 24.9, hpbw: 9.3 },
+  };
+  var GSTN = { dsn: { name: "DSN 34 m", gt: 41.0 }, m13: { name: "13 m station", gt: 26.0 }, m5: { name: "5 m station", gt: 17.0 } };
+  var LINK = { f: 2.25e9, line: 1.0, atm: 0.3, pol: 0.5, ebn0: 2.5, margin: 3.0, k: -228.6, obstruct: 85, maxRate: 10e6 };
+  var CAM_COLOR = "#a8e05f", ANT_COLOR = "#e66767";
+  var TGT_NAME = { moon: "the Moon", pole: "the lunar south pole", earth: "the Earth" };
+  var plCache = null, PLD = null;
+
+  function readPayload() {
+    function n(id, d) { var v = parseFloat($(id).value); return isFinite(v) ? v : d; }
+    return {
+      show: $("showFov").checked,
+      camFace: $("camFace").value, camTilt: clamp(n("camTilt", 30), 0, 85), camFov: clamp(n("camFov", 20), 0.5, 120),
+      camTarget: $("camTarget").value, camSunEx: clamp(n("camSunEx", 30), 0, 90), camAz: n("camAz", 180),
+      antMount: $("antMount").value, antFace: $("antFace").value, antTilt: clamp(n("antTilt", 45), 0, 85),
+      ant: ANT[$("antType").value] || ANT.helix, pt: Math.max(n("txPower", 5), 0.01), rate: Math.max(n("dataRate", 100), 1e-3) * 1000,
+      gs: GSTN[$("ground").value] || GSTN.dsn,
+    };
+  }
+  function vsub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function vadd(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+  function vscl(a, k) { return [a[0] * k, a[1] * k, a[2] * k]; }
+  function vunit(a) { var m = nrm(a); return m > 1e-12 ? vscl(a, 1 / m) : [0, 0, 0]; }
+  function vcross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function angDeg(a, b) { return Math.acos(clamp(dot(a, b), -1, 1)) / RAD; }
+  function perpTo(v, n) {
+    var p = vsub(v, vscl(n, dot(v, n))), m = nrm(p);
+    return m > 1e-9 ? vscl(p, 1 / m) : vunit(vcross(n, Math.abs(n[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0]));
+  }
+  function rotAbout(v, k, a) {                       // Rodrigues rotation of v about unit axis k
+    var c = Math.cos(a), s = Math.sin(a), kv = vcross(k, v), kd = dot(k, v);
+    return [v[0] * c + kv[0] * s + k[0] * kd * (1 - c), v[1] * c + kv[1] * s + k[1] * kd * (1 - c), v[2] * c + kv[2] * s + k[2] * kd * (1 - c)];
+  }
+  function segHitsSphere(p0, p1, c, R) {
+    var d = vsub(p1, p0), u = clamp(dot(vsub(c, p0), d) / Math.max(dot(d, d), 1e-30), 0, 1);
+    return nrm(vsub(vadd(p0, vscl(d, u)), c)) < R;
+  }
+
+  /** S-band downlink budget (dB units); off is the angle between the boresight and the Earth. */
+  function linkBudget(rangeKm, off, PL) {
+    var lam = 299792458 / LINK.f, ptDbw = 10 * Math.log10(PL.pt), Lpt = 12 * Math.pow(off / PL.ant.hpbw, 2);
+    var eirp = ptDbw - LINK.line + PL.ant.gain - Lpt, fsl = 20 * Math.log10(4 * Math.PI * rangeKm * 1000 / lam);
+    var cn0 = eirp - fsl - LINK.atm - LINK.pol + PL.gs.gt - LINK.k, rdb = 10 * Math.log10(PL.rate), ebn0 = cn0 - rdb;
+    var rpow = Math.pow(10, (cn0 - LINK.ebn0 - LINK.margin) / 10);
+    return { ptDbw: ptDbw, Lpt: Lpt, eirp: eirp, fsl: fsl, cn0: cn0, rdb: rdb, ebn0: ebn0, margin: ebn0 - LINK.ebn0,
+             rmax: Math.min(rpow, LINK.maxRate), capped: rpow > LINK.maxRate, off: off, rangeKm: rangeKm };
+  }
+
+  /** Instrument pointing for the sailcraft state st (ECI). The bus rolls freely about the sail normal n: with a fixed
+   *  antenna the roll aims the antenna at Earth and the camera sits camAz further round; otherwise the roll aims the camera. */
+  function payloadGeom(st, PL) {
+    var r = st.r, n = st.n, su = st.su, rM = st.rM;
+    var dE = nrm(r), toE = vscl(r, -1 / dE), mvec = vsub(rM, r), dM = nrm(mvec), toM = vscl(mvec, 1 / dM);
+    var south = vscl(st.F.zh, -1), polePos = vadd(rM, vscl(south, K.R_M)), toP = vunit(vsub(polePos, r));
+    var tgt = PL.camTarget === "earth" ? toE : PL.camTarget === "pole" ? toP : toM;
+    var tgtRad = PL.camTarget === "earth" ? Math.asin(Math.min(1, K.R_E / dE)) / RAD : PL.camTarget === "moon" ? Math.asin(Math.min(1, K.R_M / dM)) / RAD : 0;
+    var fA = PL.antFace === "anti" ? n : vscl(n, -1), fC = PL.camFace === "anti" ? n : vscl(n, -1), fixed = PL.antMount === "fixed";
+    var eRoll = perpTo(fixed ? toE : tgt, n), antB;
+    if (PL.antMount === "ideal") antB = toE;
+    else if (fixed) antB = vunit(vadd(vscl(fA, Math.cos(PL.antTilt * RAD)), vscl(eRoll, Math.sin(PL.antTilt * RAD))));
+    else {
+      var Gm = (PL.antMount === "g60" ? 60 : 90) * RAD, a = Math.acos(clamp(dot(fA, toE), -1, 1));
+      antB = a <= Gm ? toE : rotAbout(fA, vunit(vcross(fA, toE)), Gm);
+    }
+    var eCam = fixed ? rotAbout(eRoll, n, PL.camAz * RAD) : eRoll;
+    var camB = vunit(vadd(vscl(fC, Math.cos(PL.camTilt * RAD)), vscl(eCam, Math.sin(PL.camTilt * RAD))));
+    var occ = segHitsSphere(r, [0, 0, 0], rM, K.R_M);
+    var blocked = PL.antMount !== "ideal" && angDeg(fA, toE) > LINK.obstruct;
+    var antOff = angDeg(antB, toE), range = Math.max(dE - K.R_E, 100);
+    var camOff = angDeg(camB, tgt), poleUp = PL.camTarget !== "pole" || dot(vsub(r, polePos), south) > 0;
+    var camIn = angDeg(fC, tgt) <= LINK.obstruct && poleUp && camOff <= PL.camFov / 2 + tgtRad && !(PL.camTarget === "earth" && occ);
+    var sunAng = angDeg(camB, su);
+    var why = occ ? "moon" : blocked ? "sail" : (antOff > 1.5 * PL.ant.hpbw ? "beam" : "");
+    var act = linkBudget(range, antOff, PL), pot = linkBudget(range, 0, PL);
+    return { toE: toE, dE: dE, tgt: tgt, antB: antB, camB: camB, antOff: antOff, camOff: camOff, camIn: camIn, tgtRad: tgtRad,
+             sunAng: sunAng, sunIn: sunAng <= PL.camSunEx, occ: occ, blocked: blocked, why: why,
+             inBeam: !why && antOff <= PL.ant.hpbw / 2, act: act, pot: pot,
+             actRate: why ? null : act.rmax, potRate: occ ? null : pot.rmax, closes: !why && act.margin >= LINK.margin };
+  }
+
+  function fmtRate(bps) {
+    if (bps == null || !isFinite(bps)) return "–";
+    if (bps >= 1e6) return fmt(bps / 1e6, bps >= 1e7 ? 0 : 1) + " Mbps";
+    if (bps >= 1e3) return fmt(bps / 1e3, bps >= 1e4 ? 0 : 1) + " kbps";
+    return fmt(bps, 0) + " bps";
+  }
+  function whyText(g) {
+    return g.why === "moon" ? "the Moon blocks the Earth" : g.why === "sail" ? "the sail blocks the Earth" : g.why === "beam" ? "the Earth is " + fmt(g.antOff) + "° off boresight" : "";
+  }
+
+  function computePayload() {
+    if (!R || !G) return;
+    var PL = plCache = readPayload(), W = tWin(), N = 1200;
+    var o = { t: [], pot: [], act: [], inBeam: [], closes: [], camIn: [], sunIn: [], PL: PL, W: W };
+    for (var i = 0; i <= N; i++) {
+      var t = W[0] + (W[1] - W[0]) * i / N, st = craftState(t);
+      if (!st) continue;
+      var g = payloadGeom(st, PL);
+      o.t.push(t); o.pot.push(g.potRate); o.act.push(g.actRate); o.inBeam.push(g.inBeam); o.closes.push(g.closes);
+      o.camIn.push(g.camIn); o.sunIn.push(g.sunIn);
+    }
+    PLD = o;
+  }
+  function fracOf(a) { var k = 0; a.forEach(function (v) { if (v) k++; }); return a.length ? k / a.length : 0; }
+
+  function renderPayload() {
+    if (!PLD) return;
+    var PL = PLD.PL, host = $("pstats"); host.innerHTML = "";
+    function stat(label, value, sub) {
+      var d = document.createElement("div"), a = document.createElement("span"), b = document.createElement("b"), c = document.createElement("small");
+      a.textContent = label; b.textContent = value; c.textContent = sub; d.appendChild(a); d.appendChild(b); d.appendChild(c); host.appendChild(d);
+    }
+    var span = zoom === "cis" ? "cislunar legs" : "whole mission";
+    stat("Earth in antenna beam", fmt(100 * fracOf(PLD.inBeam)) + " %", "±" + fmt(PL.ant.hpbw / 2, 1) + "° beam, " + span);
+    stat("Link closes at " + fmtRate(PL.rate), fmt(100 * fracOf(PLD.closes)) + " %", "3 dB margin to the " + PL.gs.name);
+    stat("Camera on " + TGT_NAME[PL.camTarget].replace("the ", ""), fmt(100 * fracOf(PLD.camIn)) + " %", "±" + fmt(PL.camFov / 2, 1) + "° field of view");
+    stat("Sun in camera exclusion", fmt(100 * fracOf(PLD.sunIn)) + " %", "within " + fmt(PL.camSunEx) + "° of boresight");
+    // capacity chart
+    var lo = Infinity, hi = 0;
+    PLD.pot.concat(PLD.act).forEach(function (v) { if (v != null && v > 0) { lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+    if (!isFinite(lo)) { lo = 10; hi = 1e6; }
+    var y0 = Math.max(1, Math.min(lo, PL.rate) / 3), y1 = Math.max(hi, PL.rate) * 3;
+    chartLink.draw({
+      x0: PLD.W[0], x1: PLD.W[1], ylog: true, y0: y0, y1: y1, yTicks: logTicks(y0, y1).filter(function (v, i, a) { return a.length < 9 || String(v)[0] === "1"; }),
+      yFmt: function (v) { return v >= 1e9 ? fmt(v / 1e9) + "G" : v >= 1e6 ? fmt(v / 1e6) + "M" : v >= 1e3 ? fmt(v / 1e3) + "k" : fmt(v); }, yUnit: "bps",
+      notes: ["Capped at " + fmtRate(LINK.maxRate) + ", the S-band channel limit"],
+      series: [{ t: PLD.t, v: PLD.pot, color: "#a5b0c6", width: 1.5 }, { t: PLD.t, v: PLD.act, color: ANT_COLOR }],
+      refs: [{ y: PL.rate, label: "Selected rate " + fmtRate(PL.rate) }],
+      tooltip: function (t) {
+        var i = Math.min(PLD.t.length - 1, Math.max(0, countLE(PLD.t, t) - 1)), rows = [];
+        rows.push({ color: "#a5b0c6", value: fmtRate(PLD.pot[i]), label: "pointed at Earth" });
+        rows.push({ color: ANT_COLOR, value: PLD.act[i] != null ? fmtRate(PLD.act[i]) : "no link", label: "as mounted" });
+        rows.push({ color: CAM_COLOR, value: PLD.camIn[i] ? "on target" : "off target", label: "camera" });
+        return rows;
+      },
+    });
+    drawStrips();
+    renderLinkNow(true);
+  }
+
+  function drawStrips() {
+    var host = $("strips"); host.innerHTML = "";
+    if (!PLD || !PLD.t.length) return;
+    var W = Math.max(280, Math.round(host.clientWidth || 600)), m = { l: 50, r: 18 }, rows = [
+      ["Earth in antenna beam", PLD.inBeam, ANT_COLOR], ["Camera on " + TGT_NAME[PLD.PL.camTarget].replace("the ", ""), PLD.camIn, CAM_COLOR],
+      ["Sun inside the camera's exclusion cone", PLD.sunIn, "#f5c451"]];
+    var H = rows.length * 26 + 4, root = svg("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, "aria-hidden": "true" }, host);
+    var X = function (t) { return m.l + (t - PLD.W[0]) / Math.max(PLD.W[1] - PLD.W[0], 1e-9) * (W - m.l - m.r); };
+    rows.forEach(function (row, k) {
+      var y = k * 26 + 14, tx = svg("text", { x: m.l, y: y - 3, fill: "#a5b0c6", "font-size": 10.5, "font-family": "IBM Plex Sans, sans-serif" }, root);
+      tx.textContent = row[0];
+      svg("rect", { x: m.l, y: y, width: W - m.l - m.r, height: 7, rx: 3, fill: "#131b2d" }, root);
+      var on = -1;
+      for (var i = 0; i <= row[1].length; i++) {
+        var v = i < row[1].length && row[1][i];
+        if (v && on < 0) on = i;
+        if (!v && on >= 0) {
+          var x0 = X(PLD.t[on]), x1 = X(PLD.t[Math.min(i, PLD.t.length - 1)]);
+          svg("rect", { x: x0, y: y, width: Math.max(1, x1 - x0), height: 7, rx: 2, fill: row[2] }, root);
+          on = -1;
+        }
+      }
+    });
+  }
+
+  var lbLast = 0;
+  function renderLinkNow(force) {
+    if (!R || !G || !plCache) return;
+    var now = performance.now();
+    if (!force && now - lbLast < 160) return;
+    lbLast = now;
+    var st = craftState(playT); if (!st) return;
+    var PL = plCache, g = payloadGeom(st, PL), A = g.act, P = g.pot;
+    $("lbTitle").textContent = "Link budget on day " + fmt(playT, 1) + " · " + isoDay(R.jd0 + playT);
+    var stt = $("lbStatus"); stt.innerHTML = "";
+    var dot_ = document.createElement("i"), tx = document.createElement("span");
+    var ok = g.closes, partial = !g.why && !ok;
+    dot_.style.background = ok ? ANT_COLOR : partial ? "#f5c451" : "#5a6884";
+    tx.textContent = g.why ? "No link: " + whyText(g) + "." : ok ? "Link closes: up to " + fmtRate(A.rmax) + " with 3 dB margin." :
+      "Link open but below the selected rate: up to " + fmtRate(A.rmax) + ".";
+    stt.appendChild(dot_); stt.appendChild(tx);
+    var rows = [
+      ["Transmit power", fmt(PL.pt, 1) + " W · " + fmt(A.ptDbw, 1) + " dBW", null],
+      ["Line and connector loss", "−" + fmt(LINK.line, 1) + " dB", null],
+      ["Antenna gain, boresight (" + PL.ant.name + ")", fmt(PL.ant.gain, 1) + " dBi", null],
+      ["Pointing loss", "−" + fmt(A.Lpt, 1) + " dB (" + fmt(g.antOff, 1) + "° off)", "0.0 dB"],
+      ["EIRP", fmt(A.eirp, 1) + " dBW", fmt(P.eirp, 1) + " dBW", "sum"],
+      ["Range to the ground station", fmt(A.rangeKm) + " km", null],
+      ["Free-space loss at 2.25 GHz", "−" + fmt(A.fsl, 1) + " dB", null],
+      ["Atmosphere and polarization", "−" + fmt(LINK.atm + LINK.pol, 1) + " dB", null],
+      ["Ground station G/T (" + PL.gs.name + ")", fmt(PL.gs.gt, 1) + " dB/K", null],
+      ["Boltzmann constant", "+" + fmt(-LINK.k, 1) + " dB", null],
+      ["Carrier to noise density, C/N₀", fmt(A.cn0, 1) + " dB-Hz", fmt(P.cn0, 1) + " dB-Hz", "sum"],
+      ["Data rate", fmtRate(PL.rate) + " · " + fmt(A.rdb, 1) + " dB-Hz", null],
+      ["Eb/N₀", fmt(A.ebn0, 1) + " dB", fmt(P.ebn0, 1) + " dB"],
+      ["Required Eb/N₀ (BPSK, concatenated code, BER 10⁻⁶)", fmt(LINK.ebn0, 1) + " dB", null, "sub"],
+      ["Margin", fmt(A.margin, 1) + " dB", fmt(P.margin, 1) + " dB", "sum"],
+      ["Highest rate at 3 dB margin", fmtRate(A.rmax) + (A.capped ? " (channel limit)" : ""), fmtRate(P.rmax) + (P.capped ? " (channel limit)" : ""), "sum"],
+    ];
+    var tb = $("lbTable").querySelector("tbody"); tb.innerHTML = "";
+    var hr = document.createElement("tr");
+    ["", "As mounted", "Pointed at Earth"].forEach(function (h, i) { var th = document.createElement("th"); th.textContent = h; if (i) th.className = "n"; hr.appendChild(th); });
+    tb.appendChild(hr);
+    rows.forEach(function (r_) {
+      var tr_ = document.createElement("tr"); if (r_[3]) tr_.className = r_[3];
+      var c1 = document.createElement("td"); c1.textContent = r_[0];
+      var c2 = document.createElement("td"); c2.className = "n"; c2.textContent = g.why && (r_[3] === "sum") && r_[0] !== "EIRP" ? "–" : r_[1];
+      var c3 = document.createElement("td"); c3.className = "n"; c3.textContent = r_[2] == null ? r_[1] : (g.occ && r_[3] === "sum" && r_[0] !== "EIRP" ? "–" : r_[2]);
+      tr_.appendChild(c1); tr_.appendChild(c2); tr_.appendChild(c3); tb.appendChild(tr_);
+    });
+  }
+
+  function payloadChanged() {
+    if (!R) return;
+    computePayload(); renderPayload(); dirty = true;
   }
 
   // ------------------------------------------------------------------ launch-date scan
@@ -1118,6 +1347,19 @@
     S.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color: 0xf5c451, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     S.glow.scale.set(2.2, 2.2, 1); S.craft.add(S.glow);
 
+    // payload fields of view: cones open along -y from the apex at the sailcraft, scaled per frame
+    function cone(color) {
+      var gr = new THREE.Group(), geo = new THREE.ConeGeometry(1, 1, 48, 1, true); geo.translate(0, -0.5, 0);
+      gr.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: hexNum(color), transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false })));
+      var ring = []; for (var q = 0; q <= 64; q++) { var an = 2 * Math.PI * q / 64; ring.push(new THREE.Vector3(Math.cos(an), -1, Math.sin(an))); }
+      gr.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), new THREE.LineBasicMaterial({ color: hexNum(color), transparent: true, opacity: 0.85 })));
+      gr.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -1.12, 0)]), new THREE.LineBasicMaterial({ color: hexNum(color) })));
+      gr.renderOrder = 4; scene.add(gr); return gr;
+    }
+    S.camCone = cone(CAM_COLOR); S.antCone = cone(ANT_COLOR);
+    S.los = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x5a6884, transparent: true, opacity: 0.8 }));
+    S.los.frustumCulled = false; scene.add(S.los);
+
     // per-frame dynamic lines (inertial view during the spiral)
     S.oscLine = new DynLine(S.eciGroup, 181, "#86b6ef", 2, 0.95);
     S.trail = new DynLine(S.eciGroup, 121, "#cde2fb", 2.4, 1);
@@ -1125,7 +1367,7 @@
     // labels
     var lh = $("labels"); S.labels = {};
     [["earth", "Earth", "big"], ["moon", "Moon", "big"], ["sun", "Sun", "big sun"], ["craft", "Sailcraft", "craft"], ["target", "", ""],
-     ["L1", "L1", ""], ["L2", "L2", ""], ["L3", "L3", ""], ["L4", "L4", ""], ["L5", "L5", ""]].forEach(function (a) {
+     ["L1", "L1", ""], ["L2", "L2", ""], ["L3", "L3", ""], ["L4", "L4", ""], ["L5", "L5", ""], ["cam", "EO/IR", "inst cam"], ["ant", "S-band", "inst ant"]].forEach(function (a) {
       var d = document.createElement("div"); d.className = "lbl " + a[2]; d.textContent = a[1]; lh.appendChild(d); S.labels[a[0]] = d;
     });
 
@@ -1328,7 +1570,8 @@
     hudEls.when = el("div", "when", h);
     var ph = el("div", "ph", h); hudEls.sw = el("i", "", ph); hudEls.ph = el("span", "", ph);
     var kv = el("div", "kv", h);
-    [["rE", "From Earth"], ["rM", "From Moon"], ["att", "Sail"], ["cone", "Sun angle"], ["lit", "Light"], ["C", "Jacobi C"], ["m", "Mass"]].forEach(function (a) {
+    [["rE", "From Earth"], ["rM", "From Moon"], ["att", "Sail"], ["cone", "Sun angle"], ["lit", "Light"], ["C", "Jacobi C"], ["m", "Mass"],
+     ["cam", "EO/IR camera"], ["ant", "S-band"]].forEach(function (a) {
       el("span", "", kv).textContent = a[1]; hudEls[a[0]] = el("b", "", kv);
     });
   }
@@ -1345,6 +1588,12 @@
     hudEls.lit.textContent = (st.lit ? "Sunlit" : "Eclipse") + (st.sepOn ? " · SEP on" : "");
     hudEls.C.textContent = isFinite(st.C) ? (st.Capprox ? "≈ " : "") + st.C.toFixed(3) : "–";
     hudEls.m.textContent = fmt(st.m, 2) + " kg";
+    var pg = st.pg || (plCache ? payloadGeom(st, plCache) : null);
+    if (pg) {
+      var tn = { moon: "Moon", pole: "S. pole", earth: "Earth" }[plCache.camTarget];
+      hudEls.cam.textContent = pg.camIn ? tn + " in view" : tn + " " + fmt(pg.camOff) + "° off";
+      hudEls.ant.textContent = pg.why ? (pg.why === "beam" ? "Earth " + fmt(pg.antOff) + "° off" : pg.why === "sail" ? "Blocked by sail" : "Moon blocks Earth") : fmtRate(pg.act.rmax);
+    }
   }
 
   function project(v, el, dx, dy) {
@@ -1414,6 +1663,26 @@
     var cs = S.camera.position.distanceTo(S.craft.position) * 0.032;
     S.craft.scale.setScalar(cs);
 
+    // payload cones and the line of sight to Earth
+    var PL = plCache, showP = !!(PL && PL.show);
+    S.camCone.visible = S.antCone.visible = S.los.visible = showP;
+    S.labels.cam.style.visibility = S.labels.ant.style.visibility = showP ? "" : "hidden";
+    if (showP) {
+      var pg = payloadGeom(st, PL), Lc = S.camera.position.distanceTo(S.craft.position) * 0.16;
+      [[S.camCone, pg.camB, PL.camFov / 2, S.labels.cam], [S.antCone, pg.antB, PL.ant.hpbw / 2, S.labels.ant]].forEach(function (q) {
+        var b3 = v3(mv(Meci, q[1])).normalize(), tn = Math.tan(Math.min(q[2], 80) * RAD);
+        q[0].position.copy(S.craft.position);
+        q[0].quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), b3);
+        q[0].scale.set(Lc * tn, Lc, Lc * tn);
+        project(S.craft.position.clone().add(b3.multiplyScalar(Lc * 1.2)), q[3], 0, 0);
+      });
+      var lp = S.los.geometry.attributes.position;
+      lp.setXYZ(0, S.craft.position.x, S.craft.position.y, S.craft.position.z); lp.setXYZ(1, 0, 0, 0); lp.needsUpdate = true;
+      S.los.material.color.set(pg.closes ? ANT_COLOR : (!pg.why ? "#f5c451" : "#5a6884"));
+      S.los.material.opacity = pg.why ? 0.45 : 0.9;
+      st.pg = pg;
+    }
+
     // camera focus and zoom
     var focus = focusMode === "moon" ? S.moon.position.clone() : focusMode === "craft" ? S.craft.position.clone() : new THREE.Vector3(0, 0, 0);
     var off = S.camera.position.clone().sub(S.controls.target);
@@ -1471,7 +1740,7 @@
   // ------------------------------------------------------------------ boot
   function boot() {
     initForm(); initTimeline();
-    chartDist = new Chart($("chartDist")); chartC = new Chart($("chartC")); chartScan = $("chartScan");
+    chartDist = new Chart($("chartDist")); chartC = new Chart($("chartC")); chartScan = $("chartScan"); chartLink = new Chart($("chartLink"));
     drawScan();
     $("scanBtn").addEventListener("click", startScan);
     $("matrixBtn").addEventListener("click", startMatrix);
@@ -1483,7 +1752,7 @@
     var rw = 0, rt = 0;
     new ResizeObserver(function () {
       var w = $("chartDist").clientWidth; if (Math.abs(w - rw) < 2) return; rw = w;
-      clearTimeout(rt); rt = setTimeout(function () { if (R) renderCharts(); drawScan(); }, 120);
+      clearTimeout(rt); rt = setTimeout(function () { if (R) { renderCharts(); renderPayload(); } drawScan(); }, 120);
     }).observe($("chartDist"));
     requestAnimationFrame(loop);
     runNow();

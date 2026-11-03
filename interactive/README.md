@@ -17,6 +17,7 @@ three.js and the web fonts). A hosted copy was published as a claude.ai artifact
 | Sailcraft | design presets (CR-S, CR-H, CR-HR, CR-A, Solar Cruiser, NEA Scout, ACS3, LightSail 2), mass, sail area, sail film (optical model), optical efficiency |
 | Solar-electric propulsion | on/off, thrust, Isp, propellant, gimbal range, thrust in eclipse, sail deploy altitude (sail stays stowed while SEP climbs) |
 | Environment | solar activity for drag (solar-cycle model from the launch year, or fixed F10.7), solar gravity on/off |
+| Payload and link | bus-fixed EO/IR camera (face, tilt, field of view, target: Moon / lunar south pole / Earth, Sun exclusion, azimuth from the antenna); S-band antenna (fixed to the bus, ±60° or ±90° gimbal, or always on Earth; face, tilt; patch / helix / 0.5 m / 1 m dish; transmit power; data rate; DSN 34 m, 13 m or 5 m ground station) |
 
 The view shows the spiral as a family of osculating orbits, the cislunar trajectory coloured by phase, the destination
 orbit, the Lagrange points, the Sun direction and the sail attitude. Switch between the inertial frame (lunar orbit plane
@@ -27,6 +28,24 @@ table lists every transfer (departure, arrival, energy / phasing / capture days,
 all 30 station-to-station transfers for the current sailcraft and start date and shows them next to the study's medians
 (report Table 6.2); select a cell to fly that leg. **Launch-date scan** re-flies twelve monthly launch dates and plots days
 to the final stop; select a column to load that date.
+
+## Payload fields of view and S-band link (`src/app.js`)
+
+The sail attitude comes from the propulsion law, so bus-fixed instruments point wherever the sail does. Following the
+study's Q6 conventions, each instrument sits on the anti-Sun (+n) or Sun (−n) face, tilted from the sail normal; the
+membrane blocks ±5° about the sail plane; and the bus rolls freely about the normal (thrust does not depend on roll). With
+a fixed antenna the roll aims the antenna's azimuth at Earth and the camera sits at its set azimuth from it; with a gimbal
+or ideal pointing the roll aims the camera at its target. The 3-D view draws both fields of view as cones from the sailcraft
+plus the line of sight to Earth (red when the link closes, amber when it is open below the selected rate, grey when blocked).
+
+The downlink budget at 2.25 GHz: transmit power − 1 dB line loss + antenna gain − pointing loss 12 (θ/θ3dB)² dB (no link
+beyond 1.5 beamwidths, behind the sail or when the Moon occults the Earth) − free-space loss − 0.8 dB atmosphere and
+polarization + ground-station G/T + 228.6 dB → C/N0; Eb/N0 required 2.5 dB (BPSK, concatenated coding, BER 1e-6) with a
+3 dB margin; rates capped at 10 Mbps for the S-band channel. Example: a 5 W, 12 dBi helix to a DSN 34 m antenna at
+lunar distance gives C/N0 ≈ 76 dB-Hz. The panel shows the share of time the Earth is in the beam, the link closes at the
+selected rate, the camera sees its target and the Sun is inside the camera's exclusion cone; a capacity chart (pointed at
+Earth vs as mounted) with visibility strips; and the full budget at the moment shown. For the default CR-S itinerary the
+fixed helix sees Earth about 20 % of the time and a ±60° gimbal about 45 %, in line with the study's Q6 access figures.
 
 ## How the mission is flown (`engine.js`)
 

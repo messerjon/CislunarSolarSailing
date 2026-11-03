@@ -125,6 +125,9 @@ legend { padding: 0; font: 600 13px/1 var(--f-display); letter-spacing: .14em; t
 .lbl.big { font: 600 12.5px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
 .lbl.sun { color: var(--sun); }
 .lbl.craft { color: var(--sun); font-weight: 600; }
+.lbl.inst { font-weight: 600; font-size: 11px; }
+.lbl.cam { color: #a8e05f; }
+.lbl.ant { color: #e66767; }
 .hud { position: absolute; left: 12px; top: 12px; max-width: calc(100% - 24px); padding: 10px 12px; border-radius: 8px;
   background: rgba(6, 10, 18, .78); border: 1px solid var(--line); font: 400 12px/1.55 var(--f-mono); font-variant-numeric: tabular-nums;
   color: var(--ink-2); pointer-events: none; }
@@ -261,6 +264,26 @@ table.matrix td button:hover { outline: 2px solid var(--ink); outline-offset: 1p
 table.matrix td.diag { color: var(--muted); font-family: var(--f-mono); }
 .mkey { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
 .mkey .ramp { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #173156, #6da7ec); }
+
+.subhead { grid-column: 1 / -1; margin: 6px 0 -2px; font: 600 12px var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.pstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 4px 0 14px; }
+.pstats div { background: var(--panel); padding: 10px 12px; min-width: 0; }
+.pstats span { display: block; font-size: 12px; color: var(--ink-2); }
+.pstats b { display: block; margin-top: 3px; font: 600 21px/1.1 var(--f-body); }
+.pstats small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
+.pgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 640px) { .pstats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pchart h3, .lbwrap h3 { margin: 0 0 6px; font: 600 13.5px var(--f-body); }
+.strips { margin-top: 4px; }
+.strips svg { display: block; width: 100%; height: auto; }
+.lbstatus { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; }
+.lbstatus i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+table.lb { min-width: 520px; font-size: 13px; }
+table.lb td { padding: 5px 12px 5px 0; }
+table.lb td:first-child { width: 46%; }
+table.lb td.n { white-space: nowrap; }
+table.lb tr.sum td { border-top: 1px solid var(--axis); color: var(--ink); font-weight: 600; }
+table.lb tr.sub td { color: var(--muted); }
 .refreshing .tiles, .refreshing .charts, .refreshing .tablewrap { opacity: .55; transition: opacity .2s; }
 @media (prefers-reduced-motion: reduce) { .runstate.busy .pip { animation: none; } * { transition: none !important; } }
 </style>
@@ -414,6 +437,49 @@ table.matrix td.diag { color: var(--muted); font-family: var(--f-mono); }
         </div>
       </fieldset>
 
+      <fieldset data-payload>
+        <legend>Payload and link</legend>
+        <div class="fields">
+          <label class="chk"><input type="checkbox" id="showFov" checked> Show fields of view in 3-D</label>
+          <p class="subhead">EO/IR camera, fixed to the bus</p>
+          <label class="f"><span>Mounted on</span>
+            <select id="camFace"><option value="anti" selected>Anti-Sun face</option><option value="sun">Sun face</option></select></label>
+          <label class="f"><span>Tilt from sail normal <small>deg</small></span><input type="number" id="camTilt" value="30" min="0" max="85" step="1"></label>
+          <label class="f"><span>Field of view <small>deg, full</small></span><input type="number" id="camFov" value="20" min="0.5" max="120" step="0.5"></label>
+          <label class="f"><span>Looks for</span>
+            <select id="camTarget"><option value="moon" selected>The Moon</option><option value="pole">Lunar south pole</option><option value="earth">The Earth</option></select></label>
+          <label class="f"><span>Sun exclusion <small>deg</small></span><input type="number" id="camSunEx" value="30" min="0" max="90" step="1"></label>
+          <label class="f" data-antfixed><span>Azimuth from antenna <small>deg</small></span><input type="number" id="camAz" value="180" min="0" max="359" step="1"></label>
+          <p class="subhead">S-band antenna, 2.25 GHz downlink</p>
+          <label class="f wide"><span>Pointing</span>
+            <select id="antMount">
+              <option value="fixed" selected>Fixed to the bus</option>
+              <option value="g60">Two-axis gimbal, ±60°</option>
+              <option value="g90">Two-axis gimbal, ±90°</option>
+              <option value="ideal">Always on Earth (potential)</option>
+            </select></label>
+          <label class="f" data-antface><span>Mounted on</span>
+            <select id="antFace"><option value="anti" selected>Anti-Sun face</option><option value="sun">Sun face</option></select></label>
+          <label class="f" data-antfixed><span>Tilt from sail normal <small>deg</small></span><input type="number" id="antTilt" value="45" min="0" max="85" step="1"></label>
+          <label class="f wide"><span>Antenna</span>
+            <select id="antType">
+              <option value="patch">Patch, 6 dBi, 70° beam</option>
+              <option value="helix" selected>Helix, 12 dBi, 40° beam</option>
+              <option value="dish05">0.5 m dish, 18.8 dBi, 18.7° beam</option>
+              <option value="dish1">1 m dish, 24.9 dBi, 9.3° beam</option>
+            </select></label>
+          <label class="f"><span>Transmit power <small>W</small></span><input type="number" id="txPower" value="5" min="0.1" max="200" step="0.1"></label>
+          <label class="f"><span>Data rate <small>kbps</small></span><input type="number" id="dataRate" value="100" min="0.01" max="100000" step="any"></label>
+          <label class="f wide"><span>Ground station</span>
+            <select id="ground">
+              <option value="dsn" selected>DSN 34 m, G/T 41 dB/K</option>
+              <option value="m13">13 m commercial, G/T 26 dB/K</option>
+              <option value="m5">5 m, G/T 17 dB/K</option>
+            </select></label>
+          <p class="note">With a fixed antenna the bus rolls about the sail normal to aim it at Earth; otherwise the roll aims the camera. Rates are capped at 10 Mbps, the S-band channel limit. Changing these settings does not re-fly the mission.</p>
+        </div>
+      </fieldset>
+
       <div class="actions">
         <button type="submit" class="btn primary" id="fly">Fly mission</button>
         <label class="chk"><input type="checkbox" id="autorun" checked> Re-fly on every change</label>
@@ -505,6 +571,25 @@ table.matrix td.diag { color: var(--muted); font-family: var(--f-mono); }
       </figure>
     </div>
 
+    <div class="panel" id="payloadPanel">
+      <h2>Payload fields of view and S-band link</h2>
+      <p class="cap">The attitude is set by propulsion, so a bus-fixed camera and antenna point wherever the sail does. Statistics and the chart follow the timeline range; the link budget is for the moment shown.</p>
+      <div class="pstats" id="pstats"></div>
+      <div class="pgrid">
+        <figure class="pchart">
+          <h3>Downlink capacity at 3 dB margin</h3>
+          <div class="keyrow"><span><i style="background:#a5b0c6"></i>Antenna pointed at Earth (potential)</span><span><i style="background:#e66767"></i>This antenna, as mounted</span></div>
+          <div class="plot" id="chartLink" tabindex="0" aria-label="Maximum downlink data rate against mission day"></div>
+          <div class="strips" id="strips"></div>
+        </figure>
+        <div class="lbwrap">
+          <h3 id="lbTitle">Link budget now</h3>
+          <div class="lbstatus" id="lbStatus"></div>
+          <div class="tablewrap"><table class="lb" id="lbTable"><tbody></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="scanhead">
         <div>
@@ -552,6 +637,8 @@ table.matrix td.diag { color: var(--muted); font-family: var(--f-mono); }
           <p>From a station the sail repeats steps 2 and 3, leaving on the best of five departure days. Two kinds of leg defeat the simple steering law: leaving the NRHO toward a halo drives perilune into the Moon, and legs that start at L4 or L5 stall. Those are <b>estimated from the reverse leg</b> using the three-body problem's time-reversal symmetry, as the study did, and drawn dashed.</p>
         </div>
         <div>
+          <h3>Payload and link</h3>
+          <p>Instruments sit on the anti-Sun (+n) or Sun (−n) face; the membrane blocks ±5° about the sail plane. The bus rolls freely about the sail normal (thrust does not depend on roll). The downlink uses 1 dB line loss, 0.8 dB atmosphere and polarization loss, a Gaussian main lobe (12 (θ/θ<sub>3dB</sub>)² dB), BPSK with concatenated coding (E<sub>b</sub>/N<sub>0</sub> 2.5 dB at 10<sup>−6</sup>) and a 3 dB margin. The Moon can occult the Earth. Away from the propulsive phases the sail is shown facing the Sun, an illustrative station-keeping attitude.</p>
           <h3>Fidelity</h3>
           <ul>
             <li>The engine is a line-by-line port of the study's Python simulator. Steering tables, ephemerides, averaged rates and spiral times match it (841 days for the CR-S spiral from a perigee-raised GTO).</li>
