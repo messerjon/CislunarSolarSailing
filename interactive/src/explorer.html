@@ -1,0 +1,473 @@
+<!-- @HEAD -->
+<title>Cislunar Sail Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Interactive 3D model of a solar sail mission from Earth orbit to cislunar space, with adjustable spacecraft, propulsion and launch date.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: a flight-dynamics console. Controls rail on the left; the 3-D viewport and its mission timeline are the
+   instrument; readouts and analysis charts sit beneath. Below 900px everything stacks into one column.
+   Deliberately single (dark) theme: the scene is space, lit by one sun. */
+:root {
+  color-scheme: dark;
+  --void: #060a12;        /* page */
+  --panel: #0c1220;       /* panels and chart surface */
+  --panel-2: #131b2d;     /* inputs, hover */
+  --line: #1f2a40;        /* hairlines, grid */
+  --axis: #34425e;        /* chart baselines */
+  --ink: #e8ecf4;         /* primary text */
+  --ink-2: #a5b0c6;       /* secondary text */
+  --muted: #7a869e;       /* axis labels, captions */
+  --sun: #f5c451;         /* accent: sunlight (Sun vector, sail, primary action) */
+  --sun-ink: #1b1404;     /* text on the accent */
+  --ph-spiral: #3987e5;   /* mission phases (validated categorical order) */
+  --ph-energy: #d95926;
+  --ph-approach: #199e70;
+  --ph-trim: #9085e9;
+  --ph-ops: #d55181;
+  --warn: #fab219;
+  --crit: #e66767;
+  --f-display: "Saira Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--void); }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--ink);
+  font: 15px/1.5 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 40px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+
+/* ---------- header ---------- */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px;
+  padding-block: 22px 16px; max-width: 1560px; margin: 0 auto; }
+.brand { min-width: 0; max-width: 760px; }
+.brand h1 { margin: 0; font: 600 30px/1.05 var(--f-display); letter-spacing: .05em; text-transform: uppercase; text-wrap: balance; }
+.brand h1 b { color: var(--sun); font-weight: 600; }
+.brand p { margin: 6px 0 0; color: var(--ink-2); font-size: 14.5px; max-width: 68ch; }
+.runstate { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 10px; min-width: 260px; max-width: 420px;
+  font: 500 12.5px/1.3 var(--f-mono); color: var(--ink-2); }
+.runstate .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--ph-approach); }
+.runstate.busy .pip { background: var(--sun); animation: pulse 1s ease-in-out infinite; }
+.runstate.err .pip { background: var(--crit); }
+.runstate:not(.busy) .bar { visibility: hidden; }
+.runstate .bar { grid-column: 1 / -1; height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.runstate .bar i { display: block; height: 100%; width: 0; background: var(--sun); transition: width .15s linear; }
+@keyframes pulse { 50% { opacity: .35; } }
+
+/* ---------- grid ---------- */
+.layout { display: grid; gap: 16px; max-width: 1560px; margin: 0 auto;
+  grid-template-columns: 330px minmax(0, 1fr);
+  grid-template-areas: "controls stage" "controls readouts" "controls analysis"; }
+.stage { grid-area: stage; min-width: 0; }
+.readouts { grid-area: readouts; min-width: 0; }
+.analysis { grid-area: analysis; min-width: 0; display: grid; gap: 16px; }
+.controls { grid-area: controls; align-self: start; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 6px 16px 16px; scrollbar-width: thin; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "readouts" "controls" "analysis"; }
+  .controls { position: static; max-height: none; }
+}
+
+/* ---------- controls ---------- */
+fieldset { border: 0; margin: 0; padding: 14px 0 4px; border-bottom: 1px solid var(--line); min-width: 0; }
+fieldset:last-of-type { border-bottom: 0; }
+legend { padding: 0; font: 600 13px/1 var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin-top: 12px; }
+.f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.f.wide { grid-column: 1 / -1; }
+.f > span { font-size: 12.5px; color: var(--ink-2); }
+.f > span small { color: var(--muted); font-size: 11.5px; }
+.f input[type=number], .f input[type=date], .f select {
+  width: 100%; min-width: 0; height: 34px; padding: 0 9px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
+  font: 400 13.5px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.f select { font-family: var(--f-body); font-size: 13.5px; }
+.f input:hover, .f select:hover { border-color: var(--axis); }
+.f input:invalid { border-color: var(--crit); }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); grid-column: 1 / -1; cursor: pointer; }
+.chk input { width: 16px; height: 16px; accent-color: var(--sun); margin: 0; }
+.row-btns { display: flex; gap: 6px; grid-column: 1 / -1; flex-wrap: wrap; }
+.btn { height: 30px; padding: 0 11px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+  font-size: 12.5px; cursor: pointer; }
+.btn:hover { border-color: var(--axis); background: #18223a; }
+.btn.primary { background: var(--sun); color: var(--sun-ink); border-color: var(--sun); font-weight: 600; height: 36px; padding: 0 16px; }
+.btn.primary:hover { background: #ffd36b; }
+.btn:disabled { opacity: .45; cursor: default; }
+.derived { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 9px 10px;
+  background: #0a0f1b; border: 1px solid var(--line); border-radius: 6px; }
+.derived div { min-width: 0; }
+.derived span { display: block; font-size: 11px; color: var(--muted); }
+.derived b { font: 500 13px/1.3 var(--f-mono); font-variant-numeric: tabular-nums; }
+.note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-top: 14px; }
+.actions .chk { grid-column: auto; }
+.formerr { margin: 10px 0 0; font-size: 12.5px; color: var(--crit); }
+[data-dim="true"] { opacity: .45; }
+
+/* ---------- stage ---------- */
+.stagebox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.viewport { position: relative; height: clamp(420px, 64vh, 780px); background: #04070d; touch-action: none; }
+.viewport canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; font: 500 11.5px/1 var(--f-mono);
+  color: var(--ink-2); text-shadow: 0 0 4px #04070d, 0 0 2px #04070d; }
+.lbl.big { font: 600 12.5px/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+.lbl.sun { color: var(--sun); }
+.lbl.craft { color: var(--sun); font-weight: 600; }
+.hud { position: absolute; left: 12px; top: 12px; max-width: calc(100% - 24px); padding: 10px 12px; border-radius: 8px;
+  background: rgba(6, 10, 18, .78); border: 1px solid var(--line); font: 400 12px/1.55 var(--f-mono); font-variant-numeric: tabular-nums;
+  color: var(--ink-2); pointer-events: none; }
+.hud .when { color: var(--ink); font-weight: 500; font-size: 13px; }
+.hud .ph { display: flex; align-items: center; gap: 7px; color: var(--ink); margin: 2px 0 4px; font-family: var(--f-body); font-weight: 500; }
+.hud .ph i { width: 14px; height: 3px; border-radius: 2px; }
+.hud .kv { display: grid; grid-template-columns: auto auto; gap: 0 14px; }
+.hud .kv b { color: var(--ink); font-weight: 500; text-align: right; }
+.viewbar { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.seg { display: inline-flex; background: rgba(6, 10, 18, .82); border: 1px solid var(--line); border-radius: 7px; padding: 2px; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); font-size: 12px; height: 26px; padding: 0 9px; border-radius: 5px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #1d2943; color: var(--ink); }
+.seg select { background: transparent; border: 0; color: var(--ink-2); font-size: 12px; height: 26px; padding: 0 4px; }
+.seg select option { background: var(--panel); }
+.scalenote { font: 400 11.5px/1.4 var(--f-mono); color: var(--muted); }
+.banner { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); padding: 10px 14px;
+  border-radius: 8px; background: rgba(28, 14, 12, .92); border: 1px solid #5a2a24; color: var(--ink); font-size: 13px; }
+.banner b { color: var(--crit); }
+.no3d { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--ink-2); font-size: 14px; }
+
+/* ---------- timeline ---------- */
+.timeline { padding: 12px 14px 12px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.tl-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.play { flex: none; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--sun); color: var(--sun-ink); cursor: pointer;
+  display: grid; place-items: center; }
+.play svg { width: 16px; height: 16px; fill: currentColor; }
+.play:hover { background: #ffd36b; }
+.tl-track { position: relative; flex: 1; min-width: 0; height: 30px; }
+.tl-track input[type=range] { position: absolute; inset: 0; width: 100%; height: 30px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.tl-track input[type=range]::-webkit-slider-runnable-track { height: 30px; background: transparent; }
+.tl-track input[type=range]::-moz-range-track { height: 30px; background: transparent; }
+.tl-track input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 4px; height: 30px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--panel); }
+.tl-track input[type=range]::-moz-range-thumb { width: 4px; height: 30px; border: 0; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--panel); }
+.tl-bar { position: absolute; left: 0; right: 0; top: 11px; height: 8px; display: flex; gap: 2px; pointer-events: none; }
+.tl-bar i { display: block; height: 100%; border-radius: 4px; min-width: 3px; }
+.tl-ev { position: absolute; top: 4px; width: 1px; height: 22px; background: var(--ink-2); opacity: .55; pointer-events: none; }
+.tl-day { flex: none; font: 500 12.5px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); text-align: right; min-width: 92px; }
+.tl-day b { display: block; color: var(--ink); font-size: 13.5px; }
+.speed { flex: none; height: 32px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); font-size: 12.5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.legend button { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border: 1px solid var(--line);
+  border-radius: 14px; background: transparent; color: var(--ink-2); font-size: 12.5px; cursor: pointer; }
+.legend button:hover { border-color: var(--axis); color: var(--ink); }
+.legend button i { width: 14px; height: 4px; border-radius: 2px; }
+.legend button i.dash { background: repeating-linear-gradient(90deg, var(--ph-trim) 0 4px, transparent 4px 7px) !important; }
+.legend button b { font: 500 12px var(--f-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---------- readouts ---------- */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--r); overflow: hidden; }
+.tile { padding: 13px 16px 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0; margin: 0 -1px -1px 0; }
+.tile .k { font: 600 12px/1.2 var(--f-display); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.tile .v { margin-top: 6px; font: 600 25px/1.1 var(--f-body); letter-spacing: -.01em; }
+.tile .v small { font-size: 14px; font-weight: 500; color: var(--ink-2); margin-left: 3px; }
+.tile .s { margin-top: 4px; font-size: 12px; color: var(--muted); }
+.tile.hero .v { font-size: 34px; }
+.tile .flag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); }
+.tile .flag::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+
+/* ---------- analysis ---------- */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px 12px; min-width: 0; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1180px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+figure { margin: 0; }
+.chart h2, .panel h2 { margin: 0; font: 600 14.5px/1.3 var(--f-body); }
+.chart .cap, .panel .cap { margin: 3px 0 8px; font-size: 12.5px; color: var(--muted); max-width: 72ch; }
+.plot { position: relative; outline: none; }
+.plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.plot:focus-visible { outline: 2px solid var(--sun); outline-offset: 4px; border-radius: 4px; }
+.tip { position: absolute; top: 0; left: 0; pointer-events: none; padding: 8px 10px; border-radius: 7px; background: #0a1020; border: 1px solid var(--axis);
+  font-size: 12px; line-height: 1.45; color: var(--ink-2); white-space: nowrap; box-shadow: 0 6px 18px rgba(0, 0, 0, .45); }
+.tip .t { color: var(--ink-2); font: 400 11.5px var(--f-mono); margin-bottom: 2px; }
+.tip .r { display: flex; align-items: center; gap: 8px; }
+.tip .r i { width: 12px; height: 2px; border-radius: 1px; flex: none; }
+.tip .r b { color: var(--ink); font: 500 12.5px var(--f-mono); font-variant-numeric: tabular-nums; }
+.scanhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 16px; }
+.scanhead > div { min-width: 0; }
+.scanmsg { font: 400 12px var(--f-mono); color: var(--ink-2); margin-top: 6px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13px; min-width: 460px; width: 100%; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+th { font: 600 12px var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+th.n { text-align: right; }
+td i.sw { display: inline-block; width: 12px; height: 4px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+details.method summary { cursor: pointer; font: 600 14.5px var(--f-body); list-style: none; display: flex; align-items: center; gap: 8px; }
+details.method summary::-webkit-details-marker { display: none; }
+details.method summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: rotate(-45deg); transition: transform .15s; }
+details.method[open] summary::before { transform: rotate(45deg); }
+.method .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 28px; margin-top: 10px; }
+.method h3 { margin: 10px 0 4px; font: 600 12.5px var(--f-display); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.method p, .method li { font-size: 13.5px; color: var(--ink-2); max-width: 66ch; }
+.method p { margin: 0 0 8px; }
+.method ul { margin: 0 0 8px; padding-left: 18px; }
+.method b { color: var(--ink); font-weight: 500; }
+
+@media (max-width: 640px) {
+  .brand h1 { font-size: 25px; }
+  .viewport { height: min(118vw, 560px); }
+  .hud { font-size: 11px; padding: 8px 9px; left: 8px; top: 8px; }
+  .hud .kv { display: none; }
+  .viewbar { top: auto; bottom: 8px; right: 8px; left: 8px; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+  .seg button, .seg select { height: 32px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .tile .v { font-size: 22px; }
+  .tile.hero .v { font-size: 28px; }
+  .tl-day { min-width: 74px; }
+}
+.refreshing .tiles, .refreshing .charts, .refreshing .tablewrap { opacity: .55; transition: opacity .2s; }
+@media (prefers-reduced-motion: reduce) { .runstate.busy .pip { animation: none; } * { transition: none !important; } }
+</style>
+<!-- @BODY -->
+<header class="top">
+  <div class="brand">
+    <h1>Cislunar <b>Sail</b> Explorer</h1>
+    <p>Fly a solar sail, or a sail&nbsp;+&nbsp;solar-electric hybrid, from Earth orbit to a station in cislunar space. Change the spacecraft or the launch date and the whole mission is re-flown in your browser.</p>
+  </div>
+  <div class="runstate" id="runstate" role="status" aria-live="polite">
+    <span class="pip"></span><span id="runmsg">Loading the flight-dynamics engine…</span>
+    <div class="bar"><i id="runbar"></i></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="controls" aria-label="Mission settings">
+    <form id="form" autocomplete="off" novalidate>
+      <fieldset>
+        <legend>Launch and destination</legend>
+        <div class="fields">
+          <label class="f"><span>Launch date</span><input type="date" id="launch" value="2028-01-01" min="2025-01-01" max="2050-12-31" required></label>
+          <div class="f"><span>Shift launch</span>
+            <div class="row-btns"><button type="button" class="btn" data-shift="-1">−1 month</button><button type="button" class="btn" data-shift="1">+1 month</button></div></div>
+          <label class="f wide"><span>Departure orbit</span>
+            <select id="orbit">
+              <option value="GTO">Geosynchronous transfer orbit (GTO)</option>
+              <option value="LEO">Low Earth orbit, circular</option>
+              <option value="GEO">Geostationary orbit</option>
+              <option value="TLI">Trans-lunar injection (TLI)</option>
+            </select></label>
+          <label class="f" data-for="GTO"><span>Perigee altitude <small>km</small></span><input type="number" id="perigee" value="1000" min="150" max="60000" step="50"></label>
+          <label class="f" data-for="GTO"><span>Apogee altitude <small>km</small></span><input type="number" id="apogee" value="35786" min="200" max="100000" step="1"></label>
+          <p class="note" data-for="GTO">A standard GTO has a ~250 km perigee; the study raises it to 1,000 km so the sail survives drag.</p>
+          <label class="f" data-for="LEO"><span>Altitude <small>km</small></span><input type="number" id="alt" value="1000" min="200" max="5000" step="25"></label>
+          <label class="f" data-for="TLI"><span>Perigee altitude <small>km</small></span><input type="number" id="tliPerigee" value="300" min="150" max="5000" step="10"></label>
+          <label class="f" data-for="TLI"><span>Apogee radius <small>km</small></span><input type="number" id="tliApogee" value="400000" min="250000" max="1000000" step="5000"></label>
+          <label class="f" data-for="TLI"><span>Aim ahead of Moon <small>deg</small></span><input type="number" id="tliLead" value="0" min="-60" max="60" step="1"></label>
+          <p class="note" data-for="TLI">TLI aims the transfer apogee at the Moon's position on arrival, in the lunar orbit plane. The sail then sheds energy to be captured.</p>
+          <label class="f" data-notfor="TLI"><span>Inclination <small>deg</small></span><input type="number" id="inc" value="27" min="0" max="180" step="0.1"></label>
+          <label class="f" data-notfor="TLI"><span>Launch site</span>
+            <select id="site">
+              <option value="">Custom</option>
+              <option value="5.2">Kourou, 5.2°</option>
+              <option value="27">Cape GTO, 27°</option>
+              <option value="28.5">Cape Canaveral, 28.5°</option>
+              <option value="30.4">Tanegashima, 30.4°</option>
+              <option value="37.8">Wallops, 37.8°</option>
+              <option value="39.3">Mahia, 39.3°</option>
+              <option value="51.6">Baikonur, 51.6°</option>
+              <option value="97.6">Sun-synchronous, 97.6°</option>
+            </select></label>
+          <label class="f" data-notfor="TLI"><span>Orbit node (RAAN)</span>
+            <select id="raanMode"><option value="auto">Align with lunar plane</option><option value="manual">Set manually</option></select></label>
+          <label class="f" data-notfor="TLI" id="raanBox"><span>RAAN <small>deg</small></span><input type="number" id="raan" value="0" min="0" max="360" step="1"></label>
+          <label class="f wide"><span>Destination</span>
+            <select id="target">
+              <option value="L1H">EML1 halo orbit (Az 15,000 km)</option>
+              <option value="L2H" selected>EML2 halo orbit (Az 10,000 km)</option>
+              <option value="NRHO">9:2 near-rectilinear halo orbit (Gateway class)</option>
+              <option value="DRO">Distant retrograde orbit (70,000 km)</option>
+              <option value="L4">EML4 (leads the Moon by 60°)</option>
+              <option value="L5">EML5 (trails the Moon by 60°)</option>
+            </select></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sailcraft</legend>
+        <div class="fields">
+          <label class="f wide"><span>Design</span>
+            <select id="preset"></select></label>
+          <label class="f"><span>Mass at launch <small>kg</small></span><input type="number" id="mass" value="111" min="1" max="5000" step="1"></label>
+          <label class="f"><span>Sail area <small>m²</small></span><input type="number" id="area" value="1653" min="1" max="100000" step="1"></label>
+          <label class="f wide"><span>Sail film</span><select id="film"></select></label>
+          <label class="f"><span>Optical efficiency <small>%</small></span><input type="number" id="derate" value="100" min="10" max="100" step="1"></label>
+          <div class="f"><span>&nbsp;</span><p class="note" style="margin:0">Use below 100 % for wrinkles, billow and degradation.</p></div>
+          <div class="derived" aria-live="polite">
+            <div><span>Characteristic accel.</span><b id="dAc">–</b></div>
+            <div><span>Sail loading</span><b id="dLoad">–</b></div>
+            <div><span>Square sail side</span><b id="dSide">–</b></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Solar-electric propulsion</legend>
+        <div class="fields">
+          <label class="chk"><input type="checkbox" id="sepOn"> Hybrid: add a gimballed SEP thruster</label>
+          <label class="f" data-sep><span>Thrust <small>mN</small></span><input type="number" id="sepThrust" value="20" min="0.1" max="1000" step="0.1"></label>
+          <label class="f" data-sep><span>Specific impulse <small>s</small></span><input type="number" id="isp" value="1500" min="200" max="6000" step="50"></label>
+          <label class="f" data-sep><span>Propellant <small>kg</small></span><input type="number" id="prop" value="6" min="0" max="2000" step="0.5"></label>
+          <label class="f" data-sep><span>Gimbal range <small>deg</small></span><input type="number" id="gimbal" value="30" min="0" max="180" step="1"></label>
+          <label class="f" data-sep><span>Deploy sail above <small>km perigee</small></span><input type="number" id="deployAlt" value="0" min="0" max="40000" step="100"></label>
+          <label class="chk" data-sep><input type="checkbox" id="sepInShadow"> Thrust in eclipse (battery-backed)</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Environment</legend>
+        <div class="fields">
+          <label class="f wide"><span>Solar activity (drag)</span>
+            <select id="solar">
+              <option value="auto">From launch year (solar-cycle model)</option>
+              <option value="low">Low, F10.7 = 70</option>
+              <option value="moderate">Moderate, F10.7 = 150</option>
+              <option value="high">High, F10.7 = 230</option>
+            </select></label>
+          <label class="chk"><input type="checkbox" id="solarGravity" checked> Include solar gravity (bicircular model)</label>
+          <label class="f"><span>Give up after <small>years</small></span><input type="number" id="maxYears" value="8" min="1" max="15" step="1"></label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" id="fly">Fly mission</button>
+        <label class="chk"><input type="checkbox" id="autorun" checked> Re-fly on every change</label>
+      </div>
+      <p class="formerr" id="formerr" hidden></p>
+    </form>
+  </aside>
+
+  <section class="stage" aria-label="Mission view">
+    <div class="stagebox">
+      <div class="viewport" id="viewport">
+        <canvas id="scene" aria-label="3-D view of the mission trajectory"></canvas>
+        <div class="labels" id="labels"></div>
+        <div class="hud" id="hud" aria-live="off"></div>
+        <div class="viewbar">
+          <div class="seg" role="group" aria-label="Reference frame">
+            <button type="button" data-frame="inertial" aria-pressed="true" title="Earth-centred inertial frame, lunar orbit plane horizontal">Inertial</button>
+            <button type="button" data-frame="rotating" aria-pressed="false" title="Earth–Moon rotating frame: the Moon stays on the x-axis">Rotating</button>
+          </div>
+          <div class="seg" role="group" aria-label="Camera">
+            <button type="button" data-view="3d" aria-pressed="true">3-D</button>
+            <button type="button" data-view="top" aria-pressed="false">Top</button>
+            <button type="button" data-view="side" aria-pressed="false">Side</button>
+          </div>
+          <div class="seg"><label class="sr" for="focus" hidden>Follow</label>
+            <select id="focus" aria-label="Camera follows">
+              <option value="earth">Centre: Earth</option>
+              <option value="moon">Centre: Moon</option>
+              <option value="craft">Centre: sailcraft</option>
+            </select></div>
+          <div class="seg"><button type="button" id="autozoom" aria-pressed="true">Zoom follows orbit</button></div>
+        </div>
+        <div class="banner" id="banner" hidden></div>
+      </div>
+      <div class="timeline">
+        <div class="tl-row">
+          <button type="button" class="play" id="play" aria-label="Play">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path id="playicon" d="M4 2.5v11l9-5.5z"></path></svg>
+          </button>
+          <select class="speed" id="speed" aria-label="Playback speed">
+            <option value="auto">Auto pace</option>
+            <option value="0.5">0.5 day/s</option>
+            <option value="2">2 days/s</option>
+            <option value="10">10 days/s</option>
+            <option value="50">50 days/s</option>
+          </select>
+          <div class="tl-track">
+            <div class="tl-bar" id="tlbar"></div>
+            <div id="tlev"></div>
+            <input type="range" id="scrub" min="0" max="1000" step="0.05" value="0" aria-label="Mission day">
+          </div>
+          <div class="tl-day" id="tlday"><b>Day 0</b>–</div>
+        </div>
+        <div class="legend" id="legend" aria-label="Mission phases; select one to jump to it"></div>
+        <div class="scalenote" id="scalenote"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="readouts" aria-label="Mission summary">
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="analysis">
+    <div class="charts">
+      <figure class="panel chart">
+        <h2>Distance from Earth</h2>
+        <p class="cap">Perigee–apogee band while the sail spirals out, then the actual distance. Log scale. Select a point to jump there.</p>
+        <div class="plot" id="chartDist" tabindex="0" aria-label="Distance from Earth against mission day"></div>
+      </figure>
+      <figure class="panel chart">
+        <h2>Jacobi constant on arrival</h2>
+        <p class="cap">Earth–Moon energy, C. Below 3.19 the L1 gateway is open; the sail lowers C to the destination's value. Spiral values ignore lunar gravity.</p>
+        <div class="plot" id="chartC" tabindex="0" aria-label="Jacobi constant against mission day"></div>
+      </figure>
+    </div>
+
+    <div class="panel">
+      <div class="scanhead">
+        <div>
+          <h2>Launch-date scan</h2>
+          <p class="cap">Re-flies this spacecraft and destination for twelve monthly launch dates, starting with the one above. Select a column to load it.</p>
+        </div>
+        <button type="button" class="btn" id="scanBtn">Scan 12 launch months</button>
+      </div>
+      <div class="plot" id="chartScan" tabindex="0" aria-label="Days to station against launch month"></div>
+      <div class="scanmsg" id="scanmsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Mission timeline</h2>
+      <p class="cap">Every phase of the flown mission, for reading the numbers without the charts.</p>
+      <div class="tablewrap"><table id="phaseTable"><thead><tr><th>Phase</th><th>Starts</th><th class="n">Start day</th><th class="n">Duration, days</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
+    <details class="panel method">
+      <summary>How the model flies the mission</summary>
+      <div class="cols">
+        <div>
+          <h3>1 · Earth spiral</h3>
+          <p>Orbit-averaged Gauss equations in modified equinoctial elements, stepped with RK4. At each of 48 points per orbit the sail takes the <b>locally optimal attitude</b> that raises apogee fastest, with perigee protection, using the non-ideal optical model of the chosen film. Earth's shadow, J2 and NRLMSIS drag (for perigees below 2,500 km) are included, and SEP adds thrust within its gimbal cone until the propellant runs out.</p>
+          <p>The spiral ends when the osculating orbit reaches the cislunar gateway energy, C&nbsp;≈&nbsp;3.29.</p>
+        </div>
+        <div>
+          <h3>2 · Energy matching</h3>
+          <p>The state is handed to the Earth–Moon circular restricted three-body problem in the rotating frame. The Sun line comes from the ephemeris, with optional solar gravity. The sail steers to change the Jacobi constant as fast as possible until it equals the destination's value.</p>
+          <h3>3 · Phasing and capture</h3>
+          <p>The sail then feathers and the spacecraft coasts for up to one synodic lap. The best point of that coast starts the capture leg. The capture leg is <b>modelled, not optimised</b>: its length is the study's coast time for the destination, or the time the sail (and SEP) need to remove the velocity mismatch, whichever is longer. It is drawn dashed.</p>
+        </div>
+        <div>
+          <h3>Fidelity</h3>
+          <ul>
+            <li>The engine is a line-by-line port of the study's Python simulator. Steering tables, ephemerides, averaged rates and spiral times match it (841 days for the CR-S spiral from a perigee-raised GTO).</li>
+            <li>The Moon follows a circular orbit inclined 5.145° to the ecliptic with the 18.6-year node cycle. Shadows are cylindrical.</li>
+            <li>"Align with lunar plane" picks the launch RAAN so that, after J2 drift, the spiral arrives in the Moon's orbit plane.</li>
+            <li>Times are first-order estimates for concept studies, not flight trajectories.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<!-- @SCRIPTS -->
