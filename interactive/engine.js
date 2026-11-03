@@ -416,7 +416,8 @@
     var ac = ctx.acND * mr / (sr.R * sr.R) * lit;
     var asep = (ctx.sepND > 0 && ctx.m > ctx.mDry + 1e-6 && (lit || ctx.sepInShadow)) ? ctx.sepND * mr : 0;
     var a = [0, 0, 0], n = null, sepOn = 0, d = null;
-    if (ctx.law === "jacobi") d = scl(unit([X[3], X[4], X[5]]), ctx.sign);
+    if (ctx.law === "jacobi" && !(ctx.guardMoon && ctx.sign < 0 && Math.hypot(r[0] - 1 + K.MU, r[1], r[2]) < ctx.guardMoon))
+      d = scl(unit([X[3], X[4], X[5]]), ctx.sign);
     else if (ctx.law === "dir") d = ctx.dir;
     if (d && (ac > 0 || asep > 0)) {
       if (asep > 0) {
@@ -510,16 +511,43 @@
     return S[a].map(function (v, k) { return v * (1 - w) + S[b][k] * w; });
   }
 
+  /** Earth-centred cylindrical coordinates (radius, longitude from the Moon line, height) of a rotating-frame state. */
+  function polarOf(X) { var x = X[0] + K.MU, y = X[1]; return { r: Math.hypot(x, y), th: Math.atan2(y, x), z: X[2] }; }
+
+  /** Drawn path of the modelled capture leg: the target orbit's own motion plus an offset that decays smoothly to zero,
+   *  blended in Earth-centred cylindrical coordinates so the leg arcs around the Earth. When the short way round would
+   *  pass close to the Moon (for example EML4 -> EML5) the leg goes the long way, as natural horseshoe paths do. */
+  function captureBlend(Xs, tgt, i0, TT, NB, tStart) {
+    var Q0 = orbitState(tgt, i0, 0), ps = polarOf(Xs), pq0 = polarOf(Q0);
+    var dR = ps.r - pq0.r, dZ = ps.z - pq0.z, dTh = wrapPi(ps.th - pq0.th);
+    var dV = [Xs[3] - Q0[3], Xs[4] - Q0[4], Xs[5] - Q0[5]];         // velocity offset decays with the position offset
+    function pathAt(dth, f) {
+      var tau = TT * f, Q = orbitState(tgt, i0, tau), pq = polarOf(Q), w = 1 - smoothstep(f);
+      var r = pq.r + w * dR, th = pq.th + w * dth, z = pq.z + w * dZ;
+      return [r * Math.cos(th) - K.MU, r * Math.sin(th), z, Q[3] + w * dV[0], Q[4] + w * dV[1], Q[5] + w * dV[2]];
+    }
+    function clearance(dth) {           // closest approach to the Moon over the first 70 % of the leg
+      var c = 1e9;
+      for (var j = 0; j <= 28; j++) { var P = pathAt(dth, 0.7 * j / 28); c = Math.min(c, Math.hypot(P[0] - 1 + K.MU, P[1], P[2])); }
+      return c;
+    }
+    var alt = dTh > 0 ? dTh - TWO_PI : dTh + TWO_PI;
+    if (clearance(dTh) < 20000 / K.L && clearance(alt) > 50000 / K.L) dTh = alt;
+    var p4 = { t: [], X: [] };
+    for (var j = 0; j <= NB; j++) { p4.t.push(tStart + TT * j / NB * K.T / K.DAY); p4.X.push(pathAt(dTh, j / NB)); }
+    return p4;
+  }
+
   /** Phase 3. After the energy match the sail is feathered and the spacecraft coasts (full model) for up to one
    *  synodic lap while its geometry relative to the target drifts; the best point of the coast (weighted
    *  position/velocity distance to the target orbit, earlier preferred) starts the capture leg. The capture leg is
    *  not optimised here; as in the study (Q3, T = T_energy + T_coast) its duration is the natural coast time for
    *  the target, extended when the sail (+SEP) needs longer to null the velocity mismatch, and it is drawn as the
    *  target orbit plus a smoothly decaying offset. */
-  function* approach(X0, jdA0, tA0, ctx, tgt, sc, mdot) {
+  function* approach(X0, jdA0, tA0, ctx, tgt, sc, mdot, coastD) {
     var point = tgt.kind === "point", S = tgt.states;
-    var Rs = 40000 / K.L, Vs = 0.15 / K.V, win = (point ? 45 : 30) * K.DAY / K.T;
-    var coastD = DATA.coast_days[tgt.key] || 14;
+    coastD = coastD || DATA.coast_days[tgt.key] || 14;
+    var Rs = 40000 / K.L, Vs = 0.15 / K.V, win = Math.max(coastD - 3, 1) * K.DAY / K.T;
     var rCrash = (K.R_M + 50) / K.L, rCrashE = (K.R_E + 200) / K.L;
     var X = X0.slice(), tA = 0, rec = 0, nStep = 0, best = null, stop = null;
     var p3 = { t: [], X: [], n: [], m: [], d: [] };
@@ -538,19 +566,15 @@
     }
     ["t", "X", "n", "m", "d"].forEach(function (k) { p3[k].length = Math.max(best.k, 1); });
     var tCapStart = tA0 + best.t * K.T / K.DAY;
-    // capture duration: the study's coast time, or the time to null the velocity mismatch at 35 % of a_c plus 80 %
-    // of the SEP acceleration, whichever is longer (capped at 120 days)
+    // phasing coast + capture together take the study's coast time for this pair of regions (Q3: T = T_energy + T_coast);
+    // the velocity mismatch at the start of the capture leg and the sail (+SEP) time to null it are reported
     var dvT = best.dv * K.V * 1000;
     var sepA = ctx.m > ctx.mDry ? 0.8 * ctx.sepND * K.A_MM * 1e-3 * ctx.m0 / ctx.m : 0;
     var aEff = 0.35 * ctx.acND * K.A_MM * 1e-3 * ctx.m0 / ctx.m + sepA;
-    var trimD = dvT / Math.max(aEff, 1e-12) / K.DAY, capD = clamp(Math.max(coastD, trimD), coastD, 120);
+    var trimD = dvT / Math.max(aEff, 1e-12) / K.DAY, capD = Math.max(coastD - best.t * K.T / K.DAY, 3);
     if (sepA > 0) ctx.m = Math.max(ctx.m - mdot * capD * K.DAY * (sepA / aEff) * Math.min(trimD / capD, 1), ctx.mDry);
-    var TT = capD * K.DAY / K.T, p4 = { t: [], X: [] }, NB = Math.max(60, Math.ceil(capD * 10));
-    var err = best.X.map(function (v, k) { return v - S[best.i][k]; });
-    for (var j = 0; j <= NB; j++) {
-      var tau = TT * j / NB, Q = orbitState(tgt, best.i, tau), w = 1 - smoothstep(tau / TT);
-      p4.t.push(tCapStart + tau * K.T / K.DAY); p4.X.push(Q.map(function (v, k) { return v + w * err[k]; }));
-    }
+    var TT = capD * K.DAY / K.T, NB = Math.max(60, Math.ceil(capD * 10));
+    var p4 = captureBlend(best.X, tgt, best.i, TT, NB, tCapStart);
     return { outcome: "captured", p3: p3, p4: p4, tCap: tCapStart, tIns: tCapStart + capD, coastStop: stop,
              trim: { dv: dvT, days: trimD, coastDays: coastD, captureDays: capD }, dr: best.dr, dv: best.dv,
              iIns: point ? 0 : ((best.i + TT / tgt.period * S.length) % S.length) };
@@ -658,14 +682,14 @@
     var sc = makeCraft(prm);
     var year0 = 2000 + (jd0 - 2451545.0) / 365.25;
     var f107 = prm.solar === "auto" ? f107ForYear(year0) : ({ low: 70, moderate: 150, high: 230 })[prm.solar];
-    var tgt = targetInfo(prm.target);
     var res = { prm: prm, jd0: jd0, craft: { acMM: sc.acMM, sepMM: sc.sepThrust > 0 ? sc.sepThrust / sc.m0 * 1e3 : 0,
-                loading: sc.m0 / sc.area * 1e3, film: sc.film.name, m0: sc.m0 }, target: tgt, f107: f107,
+                loading: sc.m0 / sc.area * 1e3, film: sc.film.name, m0: sc.m0 }, f107: f107,
                 moonIncl: moonInclination(jd0), phases: [], events: [], sc: sc };
     var CHAND = C_HANDOVER, tDays = 0, X0 = null, jdH = jd0;
+    res.target = targetInfo(itinerary(prm)[0].key);
 
     // ---------------- phase 1: Earth spiral (RAAN optionally aligned with the lunar orbit plane at hand-over)
-    if (prm.orbit !== "TLI") {
+    if (prm.orbit !== "TLI" && prm.orbit !== "CIS") {
       var raan = prm.raan || 0, sp;
       if (prm.raanMode === "auto") {
         var nodeL = moonNode(jd0);
@@ -689,70 +713,82 @@
       X0 = eciToRot(stH.r, stH.v, jdH);
       res.handover = { t: tDays, ra: sp.info.ra, rp: sp.info.rp, incMoon: relInclination(sp.y, jdH) };
       res.events.push({ t: tDays, label: "Cislunar gateway energy (C ≈ " + CHAND + ")" });
-    } else {
+    } else if (prm.orbit === "TLI") {
       var tl = tliState(prm, jd0);
       X0 = eciToRot(tl.r, tl.v, jd0);
       res.events.push({ t: 0, label: "Trans-lunar injection" });
       res.p1 = null;
       res.raan = null;
+    } else {                                        // already in cislunar space: start on a catalogue orbit or point
+      res.origin = targetInfo(prm.origin);
+      res.originI = res.origin.kind === "point" ? 0 : ((prm.originPhase || 0) % 1) * res.origin.states.length;
+      res.events.push({ t: 0, label: "Start on " + res.origin.label });
+      res.p1 = null;
+      res.raan = null;
     }
 
-    // ---------------- phase 2: energy matching in the Earth-Moon system
-    var m = sc.m0 - (res.p1 ? (sc.m0 - res.p1.y[res.p1.y.length - 1][5]) : 0);
-    var ctx = { film: sc.film, acND: sc.acMM / K.A_MM, sepND: sc.sepThrust > 0 ? sc.sepThrust / sc.m0 * 1e3 / K.A_MM : 0,
-                m0: sc.m0, m: m, mDry: sc.mDry, gimbal: sc.gimbal, sepInShadow: sc.sepInShadow,
-                solarGravity: prm.solarGravity !== false, law: "jacobi", sign: 1 };
-    var p2 = { t: [], X: [], n: [], C: [], m: [], sep: [] };
-    var Cn = jacobi(X0), Ct = tgt.C;
-    ctx.sign = Cn > Ct ? 1 : -1;
-    var X = X0.slice(), tN = 0, tStart = tDays, maxND = 420 * K.DAY / K.T, h0 = 2e-3, nStep = 0, rec = 0;
+    // ---------------- cislunar legs: energy matching, phasing coast, modelled capture, then a stay on station
     var mdot = sc.sepThrust > 0 ? sc.sepThrust / (sc.isp * K.G0) : 0;
-    var outcome = "matched";
-    while (true) {
-      var jd2 = jdH + tN * K.T / K.DAY, Cc = jacobi(X);
-      if ((Cc - Ct) * ctx.sign <= 0) break;
-      var h = stepSize(X, h0);
-      var st2 = rk4Rot(X, jd2, h, ctx);
-      if (rec++ % 4 === 0) { p2.t.push(tStart + tN * K.T / K.DAY); p2.X.push(X.slice()); p2.n.push(st2.c.n); p2.C.push(Cc); p2.m.push(ctx.m); p2.sep.push(st2.c.sepOn); }
-      X = st2.X; tN += h;
-      if (st2.c.sepOn) ctx.m = Math.max(ctx.m - mdot * h * K.T, ctx.mDry);
-      if (st2.r2 < (K.R_M + 30) / K.L) { outcome = "impact"; break; }
-      if (st2.r1 < (K.R_E + 120) / K.L) { outcome = "reentry"; break; }
-      if (Math.hypot(X[0], X[1], X[2]) > 3.0) { outcome = "escape"; break; }
-      if (tN > maxND) { outcome = "timeout"; break; }
-      if (++nStep % 400 === 0) yield { phase: "Energy matching", frac: Math.min(tN / maxND, 0.99), msg: "Matching target energy: day " + Math.round(tStart + tN * K.T / K.DAY) };
+    var ctx = { film: sc.film, acND: sc.acMM / K.A_MM, sepND: sc.sepThrust > 0 ? sc.sepThrust / sc.m0 * 1e3 / K.A_MM : 0,
+                m0: sc.m0, m: res.p1 ? res.p1.y[res.p1.y.length - 1][5] : sc.m0, mDry: sc.mDry, gimbal: sc.gimbal,
+                sepInShadow: sc.sepInShadow, solarGravity: prm.solarGravity !== false, law: "jacobi", sign: 1,
+                guardMoon: (prm.perilunGuard == null ? 12000 : prm.perilunGuard) / K.L };
+    var stops = itinerary(prm), tries = prm.departureTries || [0, 3, 6, 9, 12];
+    var cur = res.origin ? { station: res.origin, stationI: res.originI, t: 0, dwell: 0 } : { X: X0, t: tDays };
+    res.legs = []; res.stays = [];
+    for (var k = 0; k < stops.length; k++) {
+      var tgt = targetInfo(stops[k].key), from = cur.station ? cur.station.key : null, leg = null;
+      var msg = "Leg " + (k + 1) + " to " + tgt.label;
+      if (cur.station) {
+        // departure window: leave the station after 0-12 extra days and keep the earliest arrival
+        var first = null;
+        for (var a = 0; a < tries.length; a++) {
+          var w = tries[a], ctxA = Object.assign({}, ctx), tDep = cur.t + cur.dwell + w;
+          var Xd = orbitState(cur.station, cur.stationI, (cur.dwell + w) * K.DAY / K.T);
+          var L = yield* flyLeg(Xd, res.jd0, tDep, ctxA, from, tgt, sc, mdot, msg + (tries.length > 1 ? " (departure option " + (a + 1) + " of " + tries.length + ")" : ""));
+          L.wait = w; L.ctx = ctxA;
+          if (!first) first = L;
+          if (L.status === "ok" && (!leg || L.tIns < leg.tIns)) leg = L;
+        }
+        if (prm.reverseFallback !== false && (!leg || leg.tIns - leg.tDep > 150)) {
+          var ctxB = Object.assign({}, ctx), phaseNow = cur.station.kind === "point" ? 0 :
+            (cur.stationI + cur.dwell * K.DAY / K.T / cur.station.period * cur.station.states.length) % cur.station.states.length;
+          var RL = yield* reverseLeg(cur.station, phaseNow, tgt, cur.t + cur.dwell, ctxB, sc, mdot, res.jd0, msg + " (estimating from the reverse leg)");
+          RL.ctx = ctxB;
+          if (RL.status === "ok" && (!leg || RL.tIns < leg.tIns)) leg = RL;
+        }
+        if (!leg) leg = first;
+        ctx = leg.ctx; delete leg.ctx;
+        // the stay before departure (origin, or the previous stop) lasts the planned dwell plus the wait
+        var stay = { tgt: cur.station, i0: cur.stationI, t0: cur.t, days: cur.dwell + leg.wait, kind: res.legs.length ? "stop" : "origin", leg: k - 1 };
+        if (stay.days > 1e-6) { res.stays.push(stay); res.phases.push({ key: "ops", leg: k - 1, label: "At " + cur.station.label, t0: stay.t0, t1: stay.t0 + stay.days, stay: true }); }
+      } else {
+        leg = yield* flyLeg(cur.X, res.jd0, cur.t, ctx, null, tgt, sc, mdot, "Matching target energy");
+        leg.wait = 0;
+      }
+      leg.k = k; res.legs.push(leg); res.target = tgt;
+      var est = leg.reversed ? " (estimated from the reverse leg)" : "";
+      [["energy", leg.p2, "Energy matching to " + tgt.label],
+       ["approach", leg.p3, leg.reversed ? "Coast" : "Phasing coast toward " + tgt.label],
+       ["trim", leg.p4, leg.reversed ? "Departure from " + targetInfo(leg.from).label : "Capture into " + tgt.label + " (modelled)"]].forEach(function (q) {
+        if (q[1] && q[1].t.length > 1) res.phases.push({ key: q[0], leg: k, label: q[2] + est, t0: q[1].t[0], t1: q[1].t[q[1].t.length - 1], est: !!leg.reversed });
+      });
+      res.phases.sort(function (x, y) { return x.t0 - y.t0; });
+      if (leg.status !== "ok") {
+        res.status = leg.status; res.tEnd = leg.tEnd; res.failedLeg = k; res.mFinal = ctx.m;
+        res.summary = summarize(res, sc); res.runtimeMs = Date.now() - t0; return res;
+      }
+      res.events.push({ t: leg.tIns, label: "On station: " + tgt.label });
+      var last = k === stops.length - 1;
+      cur = { station: tgt, stationI: leg.iIns, t: leg.tIns,
+              dwell: last ? (tgt.period ? Math.max(30, 3 * tgt.period * K.T / K.DAY) : 45) : Math.max(0, stops[k].dwell || 0) };
+      if (last) {
+        res.stays.push({ tgt: tgt, i0: leg.iIns, t0: leg.tIns, days: cur.dwell, kind: "final", leg: k });
+        res.phases.push({ key: "ops", leg: k, label: "On station at " + tgt.label, t0: leg.tIns, t1: leg.tIns + cur.dwell, stay: true });
+      }
     }
-    p2.t.push(tStart + tN * K.T / K.DAY); p2.X.push(X.slice()); p2.n.push(p2.n.length ? p2.n[p2.n.length - 1] : [1, 0, 0]); p2.C.push(jacobi(X)); p2.m.push(ctx.m); p2.sep.push(0);
-    tDays = tStart + tN * K.T / K.DAY;
-    res.p2 = p2;
-    res.phases.push({ key: "energy", label: "Energy matching (" + (ctx.sign > 0 ? "raise" : "lower") + " energy)", t0: tStart, t1: tDays });
-    if (outcome !== "matched") {
-      res.status = outcome; res.tEnd = tDays; res.summary = summarize(res, sc); res.runtimeMs = Date.now() - t0;
-      return res;
-    }
-    res.events.push({ t: tDays, label: "Target energy reached (C = " + Ct.toFixed(3) + ")" });
-
-    // ---------------- phase 3: phasing coast and modelled capture
-    var ap = yield* approach(X, jdH + tN * K.T / K.DAY, tDays, ctx, tgt, sc, mdot);
-    res.p3 = ap.p3;
-    if (ap.outcome !== "captured" && ap.outcome !== "estimated") {
-      res.status = ap.outcome; res.tEnd = ap.tEnd;
-      res.phases.push({ key: "approach", label: "Approach", t0: tDays, t1: ap.tEnd });
-      res.summary = summarize(res, sc); res.runtimeMs = Date.now() - t0; return res;
-    }
-    res.phases.push({ key: "approach", label: "Phasing coast", t0: tDays, t1: ap.tCap });
-    res.phases.push({ key: "trim", label: "Capture and trim (modelled)", t0: ap.tCap, t1: ap.tIns });
-    res.p4 = ap.p4;
-    tDays = ap.tIns;
-    res.insertion = { t: tDays, tCap: ap.tCap, i: ap.iIns, drKm: ap.dr * K.L, dvMs: ap.dv * K.V * 1000, trim: ap.trim,
-                      captured: ap.outcome === "captured", date: dateFromJd(jd0 + tDays) };
-    res.events.push({ t: ap.tCap, label: "Capture leg begins" });
-    res.events.push({ t: tDays, label: "On station: " + tgt.label });
-    // ---------------- operations on target
-    var opsDays = tgt.period ? Math.max(30, 3 * tgt.period * K.T / K.DAY) : 45;
-    res.phases.push({ key: "ops", label: "On station", t0: tDays, t1: tDays + opsDays });
-    res.ops = { t0: tDays, i0: ap.iIns, days: opsDays };
-    res.tEnd = tDays + opsDays;
+    res.target = res.legs[res.legs.length - 1].target;
+    res.tEnd = cur.t + cur.dwell;
     res.status = "ok";
     res.mFinal = ctx.m;
     res.summary = summarize(res, sc);
@@ -760,13 +796,106 @@
     return res;
   }
 
+  /** Stops of the itinerary: prm.stops = [{ key, dwell }], or the single destination prm.target. */
+  function itinerary(prm) {
+    var st = (prm.stops && prm.stops.length) ? prm.stops : [{ key: prm.target, dwell: 0 }];
+    return st.filter(function (s) { return s && s.key; }).map(function (s) { return { key: s.key, dwell: s.dwell || 0 }; });
+  }
+
+  /** Natural coast time assumed for a capture leg (study Q3 assumptions; from Earth: the destination's value). */
+  function coastDaysFor(from, to) {
+    var pair = [from, to].sort().join("-");
+    if (!from) return DATA.coast_days[to] || 14;
+    if (pair === "L4-L5") return 90;
+    if (pair === "L1H-L2H") return 21;
+    if (to === "L4" || to === "L5" || from === "L4" || from === "L5") return 45;
+    if ((from === "NRHO" || to === "NRHO") && (from === "L1H" || from === "L2H" || to === "L1H" || to === "L2H")) return 10;
+    return 20;
+  }
+
+  /** Energy matching in the Earth-Moon CR3BP: locally optimal Jacobi-constant steering until C reaches Ct. */
+  function* energyMatch(X0, jdS, tS, ctx, Ct, mdot, maxDays, msg) {
+    ctx.law = "jacobi";
+    ctx.sign = jacobi(X0) > Ct ? 1 : -1;
+    var p2 = { t: [], X: [], n: [], C: [], m: [], sep: [] };
+    var X = X0.slice(), tN = 0, maxND = maxDays * K.DAY / K.T, nStep = 0, rec = 0, outcome = "matched", lastN = null;
+    while (true) {
+      var Cc = jacobi(X);
+      if ((Cc - Ct) * ctx.sign <= 0) break;
+      var h = stepSize(X, 2e-3);
+      var st = rk4Rot(X, jdS + tN * K.T / K.DAY, h, ctx);
+      lastN = st.c.n;
+      if (rec++ % 4 === 0) { p2.t.push(tS + tN * K.T / K.DAY); p2.X.push(X.slice()); p2.n.push(st.c.n); p2.C.push(Cc); p2.m.push(ctx.m); p2.sep.push(st.c.sepOn); }
+      X = st.X; tN += h;
+      if (st.c.sepOn) ctx.m = Math.max(ctx.m - mdot * h * K.T, ctx.mDry);
+      if (st.r2 < (K.R_M + 30) / K.L) { outcome = "impact"; break; }
+      if (st.r1 < (K.R_E + 120) / K.L) { outcome = "reentry"; break; }
+      if (Math.hypot(X[0], X[1], X[2]) > 3.0) { outcome = "escape"; break; }
+      if (tN > maxND) { outcome = "timeout"; break; }
+      if (++nStep % 400 === 0) yield { phase: "Energy matching", frac: Math.min(tN / maxND, 0.99), msg: msg + ": day " + Math.round(tS + tN * K.T / K.DAY) };
+    }
+    p2.t.push(tS + tN * K.T / K.DAY); p2.X.push(X.slice()); p2.n.push(lastN || [1, 0, 0]); p2.C.push(jacobi(X)); p2.m.push(ctx.m); p2.sep.push(0);
+    return { X: X, t: tS + tN * K.T / K.DAY, jd: jdS + tN * K.T / K.DAY, p2: p2, outcome: outcome };
+  }
+
+  /** One leg: energy matching to the destination's Jacobi constant, phasing coast and modelled capture. */
+  function* flyLeg(X0, jd0, tS, ctx, from, tgt, sc, mdot, msg) {
+    var em = yield* energyMatch(X0, jd0 + tS, tS, ctx, tgt.C, mdot, from ? 240 : 420, msg);
+    var leg = { from: from, target: tgt, tDep: tS, p2: em.p2, tEnergy: em.t, raise: ctx.sign < 0 };
+    if (em.outcome !== "matched") { leg.status = em.outcome; leg.tEnd = em.t; return leg; }
+    var ap = yield* approach(em.X, em.jd, em.t, ctx, tgt, sc, mdot, coastDaysFor(from, tgt.key));
+    leg.p3 = ap.p3; leg.p4 = ap.p4; leg.tCap = ap.tCap; leg.tIns = ap.tIns; leg.iIns = ap.iIns; leg.trim = ap.trim;
+    leg.dr = ap.dr; leg.dv = ap.dv; leg.status = "ok"; leg.tEnd = ap.tIns; leg.mEnd = ctx.m;
+    return leg;
+  }
+
+  function mirrorX(X) { return [X[0], -X[1], X[2], -X[3], X[4], -X[5]]; }
+  function mirrorKey(k) { return k === "L4" ? "L5" : (k === "L5" ? "L4" : k); }
+
+  /** Estimate a leg the Jacobi steering law cannot fly forward (NRHO -> halo drives perilune into the Moon; legs that
+   *  start at L4/L5 stall) from the reverse leg, using the CR3BP symmetry (x, y, z, vx, vy, vz, t) ->
+   *  (x, -y, z, -vx, vy, -vz, -t), as the study did for these cells of its transfer matrix. The catalogue orbits are
+   *  symmetric under this map (sample i <-> N - i; L4 <-> L5). phaseNow is the spacecraft's sample index on the origin
+   *  at tDep; the estimated leg waits on the origin until it reaches the departure point. */
+  function* reverseLeg(fromTgt, phaseNow, tgt, tDep, ctx, sc, mdot, jd0, msg) {
+    var Bm = targetInfo(mirrorKey(tgt.key)), Am = targetInfo(mirrorKey(fromTgt.key)), ctxR = Object.assign({}, ctx);
+    var R = yield* flyLeg(orbitState(Bm, 0, 0), jd0, tDep, ctxR, Bm.key, Am, sc, mdot, msg);
+    if (R.status !== "ok") return { status: R.status, tEnd: R.tEnd, from: fromTgt.key, target: tgt, tDep: tDep, p2: { t: [tDep], X: [orbitState(fromTgt, phaseNow, 0)], n: [null] } };
+    var N = fromTgt.states.length, wait = 0, iDep = 0;
+    if (fromTgt.kind !== "point") {
+      iDep = (N - R.iIns) % N;
+      wait = (((iDep - phaseNow) % N) + N) % N / N * fromTgt.period * K.T / K.DAY;
+    }
+    var t0 = tDep + wait, T = R.tIns;
+    function rev(seg) {
+      if (!seg || !seg.t.length) return null;
+      var o = { t: [], X: [], n: [] };
+      for (var i = seg.t.length - 1; i >= 0; i--) { o.t.push(t0 + (T - seg.t[i])); o.X.push(mirrorX(seg.X[i])); o.n.push(null); }
+      return o;
+    }
+    ctx.m = ctxR.m;
+    return { from: fromTgt.key, target: tgt, reversed: true, status: "ok", wait: wait, tDep: t0, tIns: t0 + (T - tDep),
+             p2: rev(R.p2), p3: rev(R.p3), p4: rev(R.p4), iIns: 0, trim: R.trim, dr: R.dr, dv: R.dv, tEnd: t0 + (T - tDep),
+             dur: { energy: R.tEnergy - R.tDep, phasing: R.tCap - R.tEnergy, capture: R.tIns - R.tCap } };
+  }
+
   function summarize(res, sc) {
-    var s = { status: res.status };
-    var ph = {}; res.phases.forEach(function (p) { ph[p.key] = p.t1 - p.t0; });
-    s.spiralDays = ph.spiral || 0; s.energyDays = ph.energy || 0; s.approachDays = ph.approach || 0; s.trimDays = ph.trim || 0;
-    s.toTargetDays = res.insertion ? res.insertion.t : null;
-    s.arrival = res.insertion ? res.insertion.date : null;
-    var mEnd = res.mFinal != null ? res.mFinal : (res.p2 ? res.p2.m[res.p2.m.length - 1] : (res.p1 ? res.p1.y[res.p1.y.length - 1][5] : sc.m0));
+    var s = { status: res.status, legs: [] };
+    function sum(key) { return res.phases.filter(function (p) { return p.key === key; }).reduce(function (a, p) { return a + p.t1 - p.t0; }, 0); }
+    s.spiralDays = sum("spiral"); s.energyDays = sum("energy"); s.approachDays = sum("approach"); s.trimDays = sum("trim");
+    (res.legs || []).forEach(function (L) {
+      var ok = L.status === "ok";
+      var d = L.dur || { energy: L.tEnergy - L.tDep, phasing: ok ? L.tCap - L.tEnergy : null, capture: ok ? L.tIns - L.tCap : null };
+      s.legs.push({ from: L.from, to: L.target.key, status: L.status, depart: L.tDep, wait: L.wait || 0, reversed: !!L.reversed,
+        arrive: ok ? L.tIns : null, transfer: ok ? L.tIns - L.tDep : null, energy: d.energy, phasing: d.phasing, capture: d.capture,
+        dvMismatch: ok && L.dv != null ? L.dv * K.V * 1000 : null });
+    });
+    var okLegs = s.legs.filter(function (l) { return l.status === "ok"; });
+    s.cislunarDays = okLegs.reduce(function (a, l) { return a + l.transfer + l.wait; }, 0);
+    s.firstArrival = okLegs.length ? okLegs[0].arrive : null;
+    s.toTargetDays = res.status === "ok" && okLegs.length ? okLegs[okLegs.length - 1].arrive : null;
+    s.arrival = s.toTargetDays != null ? dateFromJd(res.jd0 + s.toTargetDays) : null;
+    var mEnd = res.mFinal != null ? res.mFinal : (res.p1 ? res.p1.y[res.p1.y.length - 1][5] : sc.m0);
     s.propUsed = sc.m0 - mEnd;
     s.propLoaded = sc.m0 - sc.mDry;
     return s;
@@ -802,22 +931,29 @@
     return pts;
   }
 
-  /** Rotating non-dimensional state at mission day t for phases 2-4. */
+  /** Time-ordered pieces of the cislunar part of a mission: stays on station and the recorded leg segments. */
+  function pieces(res) {
+    if (res._pieces) return res._pieces;
+    var P = [];
+    (res.stays || []).forEach(function (s) { P.push({ t0: s.t0, t1: s.t0 + s.days, stay: s }); });
+    (res.legs || []).forEach(function (L) {
+      [L.p2, L.p3, L.p4].forEach(function (seg, k) { if (seg && seg.t.length) P.push({ t0: seg.t[0], t1: seg.t[seg.t.length - 1], seg: seg, trim: k === 2 || !!L.reversed, leg: L }); });
+    });
+    P.sort(function (a, b) { return a.t0 - b.t0 || a.t1 - b.t1; });
+    Object.defineProperty(res, "_pieces", { value: P, enumerable: false, configurable: true });
+    return P;
+  }
+
+  /** Rotating non-dimensional state (and recorded sail normal, if any) at mission day t after the Earth spiral. */
   function rotState(res, t) {
-    function pick(P) {
-      var b = bracket(P.t, t), i = b[0], j = b[1], w = b[2];
-      return { X: P.X[i].map(function (v, k) { return v * (1 - w) + P.X[j][k] * w; }), n: P.n[i] };
-    }
-    if (res.p2 && t <= res.p2.t[res.p2.t.length - 1]) return pick(res.p2);
-    if (res.p3 && res.p3.t.length && t <= res.p3.t[res.p3.t.length - 1]) return pick(res.p3);
-    if (res.p4 && t <= res.p4.t[res.p4.t.length - 1]) {
-      var b4 = bracket(res.p4.t, t);
-      return { X: res.p4.X[b4[0]].map(function (v, k) { return v * (1 - b4[2]) + res.p4.X[b4[1]][k] * b4[2]; }), n: null, trim: true };
-    }
-    if (res.insertion && res.ops) return { X: orbitState(res.target, res.ops.i0, (t - res.ops.t0) * K.DAY / K.T), n: null, ops: true };
-    if (res.p3 && res.p3.t.length) return pick(res.p3);
-    if (res.p2) return pick(res.p2);
-    return null;
+    var P = pieces(res);
+    if (!P.length) return null;
+    var q = P[P.length - 1];
+    for (var i = 0; i < P.length; i++) if (t <= P[i].t1 + 1e-9) { q = P[i]; break; }
+    if (q.stay) return { X: orbitState(q.stay.tgt, q.stay.i0, (clamp(t, q.t0, q.t1) - q.t0) * K.DAY / K.T), n: null, ops: true, stay: q.stay };
+    var b = bracket(q.seg.t, t), i0 = b[0], j0 = b[1], w = b[2];
+    return { X: q.seg.X[i0].map(function (v, k) { return v * (1 - w) + q.seg.X[j0][k] * w; }), n: q.seg.n ? q.seg.n[i0] : null,
+             trim: !!q.trim, leg: q.leg };
   }
 
   /** Display state during the Earth spiral: ECI position/velocity, sail normal from the same apogee-raising law
@@ -850,7 +986,7 @@
     bestHybrid: bestHybrid, makeFilm: makeFilm, f107ForYear: f107ForYear, rhoMean: rhoMean, rhoLst: rhoLst, coeToMee: coeToMee,
     meeToRV: meeToRV, meeInfo: meeInfo, jacobiFromMee: jacobiFromMee, averagedRates: averagedRates, rk4Mee: rk4Mee,
     jacobi: jacobi, rk4Rot: rk4Rot, stepSize: stepSize, targetInfo: targetInfo, makeCraft: makeCraft,
-    runMission: runMission, phase1State: phase1State, phase1Ellipse: phase1Ellipse, rotState: rotState,
+    runMission: runMission, itinerary: itinerary, coastDaysFor: coastDaysFor, STATIONS: ["L1H", "L2H", "NRHO", "DRO", "L4", "L5"], phase1State: phase1State, phase1Ellipse: phase1Ellipse, rotState: rotState,
     phase1Display: phase1Display, orbitState: orbitState, wdist: wdist, moonNode: moonNode, relInclination: relInclination, C_HANDOVER: C_HANDOVER, bracket: bracket, unit: unit, crs: crs, dot: dot, nrm: nrm, sub: sub, add: add, scl: scl,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

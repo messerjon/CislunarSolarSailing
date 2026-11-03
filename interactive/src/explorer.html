@@ -234,6 +234,33 @@ details.method[open] summary::before { transform: rotate(45deg); }
   .tile.hero .v { font-size: 28px; }
   .tl-day { min-width: 74px; }
 }
+
+.tl-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.tl-zoom { background: var(--panel-2); }
+.legend span.it { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.legend span.it i { width: 14px; height: 4px; border-radius: 2px; }
+.legend span.it i.dash { background: repeating-linear-gradient(90deg, var(--ink-2) 0 4px, transparent 4px 7px) !important; }
+.legchips { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.legchips button { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border: 1px solid var(--line);
+  border-radius: 14px; background: transparent; color: var(--ink-2); font-size: 12.5px; cursor: pointer; }
+.legchips button:hover { border-color: var(--axis); color: var(--ink); }
+.legchips button i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.legchips button b { font: 500 12px var(--f-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.legchips button.now { border-color: var(--ink-2); color: var(--ink); }
+.keyrow { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: -2px 0 6px; font-size: 12px; color: var(--ink-2); }
+.keyrow span { display: inline-flex; align-items: center; gap: 7px; }
+.keyrow i { width: 16px; height: 3px; border-radius: 2px; }
+table.matrix { min-width: 560px; border-collapse: separate; border-spacing: 3px; }
+table.matrix th { padding: 4px 6px; border: 0; text-align: center; white-space: nowrap; }
+table.matrix th.rowh { text-align: right; }
+table.matrix td { padding: 0; border: 0; text-align: center; }
+table.matrix td button { width: 100%; min-width: 64px; height: 44px; border: 0; border-radius: 6px; cursor: pointer; font: 500 13px/1.15 var(--f-mono);
+  font-variant-numeric: tabular-nums; }
+table.matrix td button small { display: block; font: 400 10.5px var(--f-mono); opacity: .85; }
+table.matrix td button:hover { outline: 2px solid var(--ink); outline-offset: 1px; }
+table.matrix td.diag { color: var(--muted); font-family: var(--f-mono); }
+.mkey { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+.mkey .ramp { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #173156, #6da7ec); }
 .refreshing .tiles, .refreshing .charts, .refreshing .tablewrap { opacity: .55; transition: opacity .2s; }
 @media (prefers-reduced-motion: reduce) { .runstate.busy .pip { animation: none; } * { transition: none !important; } }
 </style>
@@ -253,18 +280,29 @@ details.method[open] summary::before { transform: rotate(45deg); }
   <aside class="controls" aria-label="Mission settings">
     <form id="form" autocomplete="off" novalidate>
       <fieldset>
-        <legend>Launch and destination</legend>
+        <legend>Departure</legend>
         <div class="fields">
-          <label class="f"><span>Launch date</span><input type="date" id="launch" value="2028-01-01" min="2025-01-01" max="2050-12-31" required></label>
+          <label class="f"><span id="launchLbl">Launch date</span><input type="date" id="launch" value="2028-01-01" min="2025-01-01" max="2050-12-31" required></label>
           <div class="f"><span>Shift launch</span>
             <div class="row-btns"><button type="button" class="btn" data-shift="-1">−1 month</button><button type="button" class="btn" data-shift="1">+1 month</button></div></div>
-          <label class="f wide"><span>Departure orbit</span>
+          <label class="f wide"><span>Start from</span>
             <select id="orbit">
-              <option value="GTO">Geosynchronous transfer orbit (GTO)</option>
-              <option value="LEO">Low Earth orbit, circular</option>
-              <option value="GEO">Geostationary orbit</option>
-              <option value="TLI">Trans-lunar injection (TLI)</option>
+              <optgroup label="Earth orbit">
+                <option value="GTO">Geosynchronous transfer orbit (GTO)</option>
+                <option value="LEO">Low Earth orbit, circular</option>
+                <option value="GEO">Geostationary orbit</option>
+                <option value="TLI">Trans-lunar injection (TLI)</option>
+              </optgroup>
+              <optgroup label="Already in cislunar space">
+                <option value="CIS:L1H">EML1 halo orbit</option>
+                <option value="CIS:L2H">EML2 halo orbit</option>
+                <option value="CIS:NRHO">9:2 NRHO</option>
+                <option value="CIS:DRO">Distant retrograde orbit</option>
+                <option value="CIS:L4">EML4</option>
+                <option value="CIS:L5">EML5</option>
+              </optgroup>
             </select></label>
+          <p class="note" data-for="CIS">The sailcraft starts on this orbit on the start date, with full propellant, and flies the itinerary below.</p>
           <label class="f" data-for="GTO"><span>Perigee altitude <small>km</small></span><input type="number" id="perigee" value="1000" min="150" max="60000" step="50"></label>
           <label class="f" data-for="GTO"><span>Apogee altitude <small>km</small></span><input type="number" id="apogee" value="35786" min="200" max="100000" step="1"></label>
           <p class="note" data-for="GTO">A standard GTO has a ~250 km perigee; the study raises it to 1,000 km so the sail survives drag.</p>
@@ -273,8 +311,8 @@ details.method[open] summary::before { transform: rotate(45deg); }
           <label class="f" data-for="TLI"><span>Apogee radius <small>km</small></span><input type="number" id="tliApogee" value="400000" min="250000" max="1000000" step="5000"></label>
           <label class="f" data-for="TLI"><span>Aim ahead of Moon <small>deg</small></span><input type="number" id="tliLead" value="0" min="-60" max="60" step="1"></label>
           <p class="note" data-for="TLI">TLI aims the transfer apogee at the Moon's position on arrival, in the lunar orbit plane. The sail then sheds energy to be captured.</p>
-          <label class="f" data-notfor="TLI"><span>Inclination <small>deg</small></span><input type="number" id="inc" value="27" min="0" max="180" step="0.1"></label>
-          <label class="f" data-notfor="TLI"><span>Launch site</span>
+          <label class="f" data-earthorbit><span>Inclination <small>deg</small></span><input type="number" id="inc" value="27" min="0" max="180" step="0.1"></label>
+          <label class="f" data-earthorbit><span>Launch site</span>
             <select id="site">
               <option value="">Custom</option>
               <option value="5.2">Kourou, 5.2°</option>
@@ -286,10 +324,16 @@ details.method[open] summary::before { transform: rotate(45deg); }
               <option value="51.6">Baikonur, 51.6°</option>
               <option value="97.6">Sun-synchronous, 97.6°</option>
             </select></label>
-          <label class="f" data-notfor="TLI"><span>Orbit node (RAAN)</span>
+          <label class="f" data-earthorbit><span>Orbit node (RAAN)</span>
             <select id="raanMode"><option value="auto">Align with lunar plane</option><option value="manual">Set manually</option></select></label>
-          <label class="f" data-notfor="TLI" id="raanBox"><span>RAAN <small>deg</small></span><input type="number" id="raan" value="0" min="0" max="360" step="1"></label>
-          <label class="f wide"><span>Destination</span>
+          <label class="f" data-earthorbit id="raanBox"><span>RAAN <small>deg</small></span><input type="number" id="raan" value="0" min="0" max="360" step="1"></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Cislunar itinerary</legend>
+        <div class="fields">
+          <label class="f wide"><span>First stop</span>
             <select id="target">
               <option value="L1H">EML1 halo orbit (Az 15,000 km)</option>
               <option value="L2H" selected>EML2 halo orbit (Az 10,000 km)</option>
@@ -298,6 +342,29 @@ details.method[open] summary::before { transform: rotate(45deg); }
               <option value="L4">EML4 (leads the Moon by 60°)</option>
               <option value="L5">EML5 (trails the Moon by 60°)</option>
             </select></label>
+          <label class="f" data-leg2><span>Stay at first stop <small>days</small></span><input type="number" id="dwell1" value="30" min="0" max="365" step="1"></label>
+          <label class="f wide"><span>Then fly to</span>
+            <select id="stop2">
+              <option value="none">Stay at the first stop</option>
+              <option value="L1H">EML1 halo orbit</option>
+              <option value="L2H">EML2 halo orbit</option>
+              <option value="NRHO">9:2 NRHO</option>
+              <option value="DRO" selected>Distant retrograde orbit</option>
+              <option value="L4">EML4</option>
+              <option value="L5">EML5</option>
+            </select></label>
+          <label class="f" data-leg3><span>Stay at second stop <small>days</small></span><input type="number" id="dwell2" value="30" min="0" max="365" step="1"></label>
+          <label class="f wide" data-leg2><span>Then fly to</span>
+            <select id="stop3">
+              <option value="none" selected>Stay at the second stop</option>
+              <option value="L1H">EML1 halo orbit</option>
+              <option value="L2H">EML2 halo orbit</option>
+              <option value="NRHO">9:2 NRHO</option>
+              <option value="DRO">Distant retrograde orbit</option>
+              <option value="L4">EML4</option>
+              <option value="L5">EML5</option>
+            </select></label>
+          <p class="note">Each leg leaves its station on the best of five departure days (0–12 days after the planned stay).</p>
         </div>
       </fieldset>
 
@@ -400,7 +467,14 @@ details.method[open] summary::before { transform: rotate(45deg); }
           </div>
           <div class="tl-day" id="tlday"><b>Day 0</b>–</div>
         </div>
-        <div class="legend" id="legend" aria-label="Mission phases; select one to jump to it"></div>
+        <div class="tl-sub">
+          <div class="seg tl-zoom" role="group" aria-label="Timeline range">
+            <button type="button" data-zoom="all" aria-pressed="true">Whole mission</button>
+            <button type="button" data-zoom="cis" aria-pressed="false">Cislunar legs</button>
+          </div>
+          <div class="legend" id="legend" aria-label="Mission phases"></div>
+        </div>
+        <div class="legchips" id="legchips" aria-label="Mission legs; select one to jump to it"></div>
         <div class="scalenote" id="scalenote"></div>
       </div>
     </div>
@@ -411,15 +485,22 @@ details.method[open] summary::before { transform: rotate(45deg); }
   </section>
 
   <section class="analysis">
+    <div class="panel">
+      <h2>Cislunar legs</h2>
+      <p class="cap">Each transfer of the itinerary: energy matching, phasing coast and capture, then the stay on station. Estimated legs come from the reverse leg, as in the study.</p>
+      <div class="tablewrap"><table id="legTable"><thead><tr><th>Leg</th><th>Route</th><th>Departs</th><th>Arrives</th><th class="n">In transit, d</th><th class="n">Energy</th><th class="n">Phasing</th><th class="n">Capture</th><th class="n">Stay, d</th><th>Method</th></tr></thead><tbody></tbody></table></div>
+    </div>
+
     <div class="charts">
       <figure class="panel chart">
-        <h2>Distance from Earth</h2>
-        <p class="cap">Perigee–apogee band while the sail spirals out, then the actual distance. Log scale. Select a point to jump there.</p>
-        <div class="plot" id="chartDist" tabindex="0" aria-label="Distance from Earth against mission day"></div>
+        <h2>Distance from Earth and Moon</h2>
+        <p class="cap">Perigee–apogee band while the sail spirals out, then the actual distances. Log scale; follows the timeline range. Select a point to jump there.</p>
+        <div class="keyrow"><span><i style="background:linear-gradient(90deg,#3987e5,#d95926,#199e70,#d55181)"></i>From Earth, coloured by phase</span><span><i style="background:#a5b0c6"></i>From the Moon</span></div>
+        <div class="plot" id="chartDist" tabindex="0" aria-label="Distance from Earth and from the Moon against mission day"></div>
       </figure>
       <figure class="panel chart">
-        <h2>Jacobi constant on arrival</h2>
-        <p class="cap">Earth–Moon energy, C. Below 3.19 the L1 gateway is open; the sail lowers C to the destination's value. Spiral values ignore lunar gravity.</p>
+        <h2>Jacobi constant in cislunar space</h2>
+        <p class="cap">Earth–Moon energy, C. Below 3.19 the L1 gateway is open; on each leg the sail drives C to the next station's value. Spiral values ignore lunar gravity.</p>
         <div class="plot" id="chartC" tabindex="0" aria-label="Jacobi constant against mission day"></div>
       </figure>
     </div>
@@ -427,8 +508,20 @@ details.method[open] summary::before { transform: rotate(45deg); }
     <div class="panel">
       <div class="scanhead">
         <div>
+          <h2>Cislunar transfer times</h2>
+          <p class="cap">Flies every transfer between the six stations for this sailcraft, starting on the date above, and compares it with the study's median (report Table 6.2). Select a cell to fly that leg.</p>
+        </div>
+        <button type="button" class="btn" id="matrixBtn">Fly all 30 transfers</button>
+      </div>
+      <div class="tablewrap" id="matrixWrap"></div>
+      <div class="scanmsg" id="matrixMsg"></div>
+    </div>
+
+    <div class="panel">
+      <div class="scanhead">
+        <div>
           <h2>Launch-date scan</h2>
-          <p class="cap">Re-flies this spacecraft and destination for twelve monthly launch dates, starting with the one above. Select a column to load it.</p>
+          <p class="cap">Re-flies this sailcraft and itinerary for twelve monthly launch dates, starting with the one above. Select a column to load it.</p>
         </div>
         <button type="button" class="btn" id="scanBtn">Scan 12 launch months</button>
       </div>
@@ -454,7 +547,9 @@ details.method[open] summary::before { transform: rotate(45deg); }
           <h3>2 · Energy matching</h3>
           <p>The state is handed to the Earth–Moon circular restricted three-body problem in the rotating frame. The Sun line comes from the ephemeris, with optional solar gravity. The sail steers to change the Jacobi constant as fast as possible until it equals the destination's value.</p>
           <h3>3 · Phasing and capture</h3>
-          <p>The sail then feathers and the spacecraft coasts for up to one synodic lap. The best point of that coast starts the capture leg. The capture leg is <b>modelled, not optimised</b>: its length is the study's coast time for the destination, or the time the sail (and SEP) need to remove the velocity mismatch, whichever is longer. It is drawn dashed.</p>
+          <p>The sail then feathers and the spacecraft coasts. The best point of that coast starts the capture leg, which is <b>modelled, not optimised</b>: phasing plus capture take the study's natural coast time for the pair of regions (Q3: T = T<sub>energy</sub> + T<sub>coast</sub>). It is drawn dashed.</p>
+          <h3>4 · Legs between stations</h3>
+          <p>From a station the sail repeats steps 2 and 3, leaving on the best of five departure days. Two kinds of leg defeat the simple steering law: leaving the NRHO toward a halo drives perilune into the Moon, and legs that start at L4 or L5 stall. Those are <b>estimated from the reverse leg</b> using the three-body problem's time-reversal symmetry, as the study did, and drawn dashed.</p>
         </div>
         <div>
           <h3>Fidelity</h3>

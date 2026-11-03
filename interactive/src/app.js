@@ -43,12 +43,23 @@
   };
   var PH_ORDER = ["spiral", "energy", "approach", "trim", "ops"];
   var TNAME = { L1H: "EML1 halo", L2H: "EML2 halo", NRHO: "9:2 NRHO", DRO: "DRO", L4: "EML4", L5: "EML5" };
+  var TSHORT = { L1H: "EML1", L2H: "EML2", NRHO: "NRHO", DRO: "DRO", L4: "EML4", L5: "EML5" };
+  function orbitKind(v) { return v && v.indexOf("CIS:") === 0 ? "CIS" : v; }
+  function stopsOf(P) {
+    var st = [{ key: P.target, dwell: P.dwell1 }];
+    if (P.stop2 && P.stop2 !== "none") {
+      st.push({ key: P.stop2, dwell: P.dwell2 });
+      if (P.stop3 && P.stop3 !== "none") st.push({ key: P.stop3, dwell: 0 });
+    }
+    return st;
+  }
   var FILM_ORDER = ["AL_CP1", "AL_PEN_CR", "AL_MYLAR", "AL_AL_CP1", "CP1_THIN", "IDEAL"];
   var PRESET_ORDER = ["CR-S", "CR-H", "CR-HR", "CR-A", "SC", "NEAS", "ACS3", "LS2"];
   var ORBIT_INC = { GTO: 27, LEO: 28.5, GEO: 0 };
 
   // ------------------------------------------------------------------ form
   var FIELDS = ["launch", "orbit", "alt", "perigee", "apogee", "inc", "raanMode", "raan", "tliPerigee", "tliApogee", "tliLead", "target",
+    "dwell1", "stop2", "dwell2", "stop3",
     "preset", "mass", "area", "film", "derate", "sepOn", "sepThrust", "isp", "prop", "gimbal", "sepInShadow", "deployAlt", "solar",
     "solarGravity", "maxYears"];
 
@@ -76,8 +87,16 @@
       return "The GTO perigee must be at least 150 km and below the apogee (apogee up to 100,000 km).";
     if (P.orbit === "TLI" && !(P.tliPerigee >= 150 && P.tliApogee >= 250000 && P.tliApogee <= 1000000))
       return "TLI needs a perigee of at least 150 km and an apogee radius of 250,000–1,000,000 km.";
-    if (P.orbit !== "TLI" && !(P.inc >= 0 && P.inc <= 180)) return "Inclination must be between 0 and 180°.";
-    if (P.raanMode === "manual" && !(P.raan >= 0 && P.raan <= 360)) return "RAAN must be between 0 and 360°.";
+    var kind = orbitKind(P.orbit), earth = kind !== "TLI" && kind !== "CIS";
+    if (earth && !(P.inc >= 0 && P.inc <= 180)) return "Inclination must be between 0 and 180°.";
+    if (earth && P.raanMode === "manual" && !(P.raan >= 0 && P.raan <= 360)) return "RAAN must be between 0 and 360°.";
+    var st = stopsOf(P), prev = kind === "CIS" ? P.orbit.slice(4) : null;
+    for (var i = 0; i < st.length; i++) {
+      if (st[i].key === prev) return i === 0 ? "The first stop is the orbit the sailcraft starts on. Pick a different first stop." : "Stop " + (i + 1) + " is the same station as stop " + i + ". Pick a different one.";
+      prev = st[i].key;
+    }
+    if (st.length > 1 && !(P.dwell1 >= 0 && P.dwell1 <= 365)) return "The stay at the first stop must be 0–365 days.";
+    if (st.length > 2 && !(P.dwell2 >= 0 && P.dwell2 <= 365)) return "The stay at the second stop must be 0–365 days.";
     if (!(P.maxYears >= 1 && P.maxYears <= 15)) return "Give up after 1 to 15 years.";
     if (P.sepOn) {
       if (!(P.sepThrust > 0)) return "SEP thrust must be above 0 mN.";
@@ -96,9 +115,13 @@
       prop: P.prop, gimbal: P.gimbal, sepInShadow: P.sepInShadow, deployAlt: P.sepOn ? P.deployAlt : 0, target: P.target,
       solar: P.solar, solarGravity: P.solarGravity, maxYears: P.maxYears,
     };
-    if (P.orbit === "LEO") prm.alt = P.alt;
-    if (P.orbit === "GTO") { prm.perigee = P.perigee; prm.apogee = P.apogee; }
-    if (P.orbit === "TLI") { prm.perigee = P.tliPerigee; prm.apogee = P.tliApogee; prm.tliLead = P.tliLead; }
+    var kind = orbitKind(P.orbit);
+    prm.orbit = kind;
+    if (kind === "CIS") prm.origin = P.orbit.slice(4);
+    if (kind === "LEO") prm.alt = P.alt;
+    if (kind === "GTO") { prm.perigee = P.perigee; prm.apogee = P.apogee; }
+    if (kind === "TLI") { prm.perigee = P.tliPerigee; prm.apogee = P.tliApogee; prm.tliLead = P.tliLead; }
+    prm.stops = stopsOf(P);
     return prm;
   }
 
@@ -112,10 +135,14 @@
   }
 
   function syncVisibility() {
-    var orbit = $("orbit").value;
-    document.querySelectorAll("[data-for]").forEach(function (el) { el.hidden = el.getAttribute("data-for") !== orbit; });
-    document.querySelectorAll("[data-notfor]").forEach(function (el) { el.hidden = el.getAttribute("data-notfor") === orbit; });
-    $("raanBox").hidden = orbit === "TLI" || $("raanMode").value !== "manual";
+    var kind = orbitKind($("orbit").value), earth = kind !== "TLI" && kind !== "CIS";
+    document.querySelectorAll("[data-for]").forEach(function (el) { el.hidden = el.getAttribute("data-for") !== kind; });
+    document.querySelectorAll("[data-earthorbit]").forEach(function (el) { el.hidden = !earth; });
+    $("raanBox").hidden = !earth || $("raanMode").value !== "manual";
+    $("launchLbl").textContent = kind === "CIS" ? "Start date" : "Launch date";
+    var s2 = $("stop2").value !== "none", s3 = s2 && $("stop3").value !== "none";
+    document.querySelectorAll("[data-leg2]").forEach(function (el) { el.hidden = !s2; });
+    document.querySelectorAll("[data-leg3]").forEach(function (el) { el.hidden = !s3; });
     var sep = $("sepOn").checked;
     document.querySelectorAll("[data-sep]").forEach(function (el) {
       el.setAttribute("data-dim", sep ? "false" : "true");
@@ -256,10 +283,11 @@
     setRunState(ok ? "ok" : "err", ok ? ("Flown in " + (ms / 1000).toFixed(ms < 1000 ? 2 : 1) + " s · " + fmt(res.summary.toTargetDays) + " days to station")
       : statusShort(res) + " on day " + fmt(res.tEnd), 1);
     G = buildDisplayData(res);
-    renderTiles(); renderTimeline(); renderPhaseTable(); renderCharts();
+    renderTiles(); renderTimeline(); renderPhaseTable(); renderLegTable(); renderCharts(); drawMatrix();
     var b = $("banner"); b.hidden = ok; b.innerHTML = ""; if (!ok) { var s = document.createElement("b"); s.textContent = statusShort(res) + ". "; b.appendChild(s); b.appendChild(document.createTextNode(statusText(res))); }
     if (HAS3D) buildScene(res);
-    var tStart = res.insertion ? Math.min(res.tEnd, res.insertion.t + 0.3 * (res.tEnd - res.insertion.t)) : res.tEnd;
+    var lastLeg = res.legs && res.legs.length ? res.legs[res.legs.length - 1] : null;
+    var tStart = ok && lastLeg ? Math.min(res.tEnd, lastLeg.tIns + 0.3 * (res.tEnd - lastLeg.tIns)) : res.tEnd;
     setPlaying(false); setTime(tStart);
     if (HAS3D) { camDist = 1150; aimCamera(viewMode); }
   }
@@ -272,28 +300,46 @@
       for (var i = 0; i < res.p1.t.length; i++) { var I = E.meeInfo(res.p1.y[i]); t.push(res.p1.t[i]); ra.push(I.ra); rp.push(I.rp); }
       g.spiral = { t: t, ra: ra, rp: rp, C: res.p1.C.slice(), m: res.p1.y.map(function (y) { return y[5]; }) };
     }
-    function push(key, ts, Xs, ms) { if (ts && ts.length >= 2) g.segs.push({ key: key, t: ts.slice(), X: Xs.slice(), m: ms ? ms.slice() : null }); }
-    if (res.p2) push("energy", res.p2.t, res.p2.X, res.p2.m);
-    if (res.p3) push("approach", res.p3.t, res.p3.X, res.p3.m);
-    if (res.p4) push("trim", res.p4.t, res.p4.X, null);
-    if (res.ops) {
-      var n = Math.max(240, Math.ceil(res.ops.days * 30)), ts = [], Xs = [];
-      for (var j = 0; j <= n; j++) { var tau = res.ops.days * j / n; ts.push(res.ops.t0 + tau); Xs.push(E.orbitState(res.target, res.ops.i0, tau * K.DAY / K.T)); }
-      push("ops", ts, Xs, null);
-    }
+    (res.stays || []).forEach(function (st) {
+      var n = Math.max(160, Math.ceil(st.days * 30)), ts = [], Xs = [];
+      for (var j = 0; j <= n; j++) { var tau = st.days * j / n; ts.push(st.t0 + tau); Xs.push(E.orbitState(st.tgt, st.i0, tau * K.DAY / K.T)); }
+      g.segs.push({ key: "ops", t: ts, X: Xs, m: null, est: false, stay: st, leg: st.leg });
+    });
+    (res.legs || []).forEach(function (L, k) {
+      [["energy", L.p2], ["approach", L.p3], ["trim", L.p4]].forEach(function (q) {
+        var seg = q[1];
+        if (!seg || seg.t.length < 2) return;
+        g.segs.push({ key: q[0], t: seg.t.slice(), X: seg.X.slice(), m: seg.m ? seg.m.slice() : null, est: !!L.reversed, leg: k });
+      });
+    });
+    g.segs.sort(function (a, b) { return a.t[0] - b.t[0]; });
     for (var s = 1; s < g.segs.length; s++) {           // stitch segments so the drawn path is continuous
       var a = g.segs[s - 1], b = g.segs[s];
       if (b.t[0] > a.t[a.t.length - 1] + 1e-9) { b.t.unshift(a.t[a.t.length - 1]); b.X.unshift(a.X[a.X.length - 1]); if (b.m) b.m.unshift(a.m ? a.m[a.m.length - 1] : b.m[0]); }
     }
-    var Ct = res.target.C;
     g.segs.forEach(function (sg) {
       sg.rE = sg.X.map(function (X) { return Math.hypot(X[0] + K.MU, X[1], X[2]) * K.L; });
-      if (sg.key === "trim") { var c0 = E.jacobi(sg.X[0]); sg.C = sg.t.map(function (tt, k) { return c0 + (Ct - c0) * k / (sg.t.length - 1); }); }
-      else if (sg.key === "ops") sg.C = sg.t.map(function () { return Ct; });
+      sg.rM = sg.X.map(function (X) { return Math.hypot(X[0] - 1 + K.MU, X[1], X[2]) * K.L; });
+      if (sg.key === "trim") { var c0 = E.jacobi(sg.X[0]), c1 = E.jacobi(sg.X[sg.X.length - 1]); sg.C = sg.t.map(function (tt, k) { return c0 + (c1 - c0) * k / (sg.t.length - 1); }); }
       else sg.C = sg.X.map(function (X) { return E.jacobi(X); });
     });
     g.mFinal = res.mFinal != null ? res.mFinal : (res.p1 ? res.p1.y[res.p1.y.length - 1][5] : res.sc.m0);
     return g;
+  }
+
+  function stationName(key) { return TNAME[key] || key; }
+  /** Human description of the phase entry p (with its leg). */
+  function phaseText(p) {
+    if (!p) return "";
+    if (p.key === "spiral") return "Earth spiral";
+    var L = R.legs && R.legs[p.leg];
+    if (p.stay) {
+      var st = (R.stays || []).filter(function (x) { return Math.abs(x.t0 - p.t0) < 1e-9; })[0];
+      return st ? (st.kind === "final" ? "On station at " : "At ") + stationName(st.tgt.key) : p.label;
+    }
+    if (!L) return PH[p.key].name;
+    var from = L.from ? TSHORT[L.from] : (R.prm.orbit === "TLI" ? "TLI" : "Earth");
+    return "Leg " + (p.leg + 1) + " · " + from + " → " + TSHORT[L.target.key] + " · " + PH[p.key].name.replace(" (modelled)", "") + (p.est ? " (estimated)" : (p.key === "trim" ? " (modelled)" : ""));
   }
 
   function phaseAt(t) {
@@ -320,23 +366,25 @@
   }
 
   function renderTiles() {
-    var res = R, s = res.summary, ok = res.status === "ok", c = res.craft, host = $("tiles");
+    var res = R, s = res.summary, ok = res.status === "ok", c = res.craft, host = $("tiles"), legs = s.legs || [];
     host.innerHTML = "";
-    var cis = (s.energyDays || 0) + (s.approachDays || 0) + (s.trimDays || 0);
-    host.appendChild(tile("Days to station", ok ? fmt(s.toTargetDays) : "–", ok ? "d" : "",
-      ok ? "On station " + prettyDate(res.jd0 + s.toTargetDays) + " · " + (TNAME[res.prm.target] || "") : statusShort(res), true, !ok));
-    host.appendChild(tile("Earth spiral", res.p1 ? fmt(s.spiralDays) : "0", "d",
+    var multi = legs.length > 1, okLegs = legs.filter(function (l) { return l.status === "ok"; });
+    host.appendChild(tile(multi ? "Days to final stop" : "Days to station", ok ? fmt(s.toTargetDays) : "–", ok ? "d" : "",
+      ok ? "At " + stationName(res.target.key) + " on " + prettyDate(res.jd0 + s.toTargetDays) : statusShort(res) + (res.failedLeg != null ? " on leg " + (res.failedLeg + 1) : ""), true, !ok));
+    if (res.origin) host.appendChild(tile("Start", TSHORT[res.origin.key], "", "On " + prettyDate(res.jd0) + " · no Earth spiral"));
+    else host.appendChild(tile("Earth spiral", res.p1 ? fmt(s.spiralDays) : "0", "d",
       res.p1 ? fmt(s.spiralDays / 365.25, 2) + " years to C ≈ 3.29" : "Not needed after TLI"));
-    host.appendChild(tile("Cislunar arrival", ok ? fmt(cis) : "–", ok ? "d" : "",
-      ok ? "Energy " + fmt(s.energyDays) + " · phasing " + fmt(s.approachDays) + " · capture " + fmt(s.trimDays) : "Not reached"));
+    host.appendChild(tile("Cislunar transit", okLegs.length ? fmt(s.cislunarDays) : "–", okLegs.length ? "d" : "",
+      legs.length + (legs.length === 1 ? " leg" : " legs") + (multi ? ": " + legs.map(function (l) { return l.status === "ok" ? fmt(l.transfer + l.wait) : "×"; }).join(" + ") + " d" : (okLegs.length ? ", energy " + fmt(s.energyDays) + " · phasing " + fmt(s.approachDays) + " · capture " + fmt(s.trimDays) : ""))));
     host.appendChild(tile("Characteristic accel.", fmt(c.acMM, 3), "mm/s²", c.sepMM > 0 ? "SEP adds " + fmt(c.sepMM, 3) + " mm/s²" : "Sail only, at 1 AU"));
     host.appendChild(tile("Sail loading", fmt(c.loading, 1), "g/m²", fmt(Math.sqrt(res.sc.area), 1) + " m square sail"));
     host.appendChild(tile("Propellant used", s.propLoaded > 0 ? fmt(s.propUsed, 2) : "–", s.propLoaded > 0 ? "kg" : "",
       s.propLoaded > 0 ? "of " + fmt(s.propLoaded, 1) + " kg loaded" : "No SEP on board"));
     if (res.handover) host.appendChild(tile("Plane offset at hand-over", fmt(res.handover.incMoon, 1), "°",
       "From lunar plane · RAAN " + fmt(res.raan, 1) + "°" + (res.prm.raanMode === "auto" ? " (aligned)" : "")));
-    else host.appendChild(tile("Plane offset at hand-over", "0", "°", "TLI flies in the lunar plane"));
-    host.appendChild(tile("Solar activity", fmt(res.f107), "sfu", "Lunar plane " + fmt(res.moonIncl, 1) + "° to equator at launch"));
+    else host.appendChild(tile("Stations", String(legs.length + (res.origin ? 1 : 0)), "",
+      (res.origin ? TSHORT[res.origin.key] + " → " : "TLI → ") + legs.map(function (l) { return TSHORT[l.to]; }).join(" → ")));
+    host.appendChild(tile("Solar activity", fmt(res.f107), "sfu", "Lunar plane " + fmt(res.moonIncl, 1) + "° to equator at start"));
   }
 
   function renderPhaseTable() {
@@ -344,7 +392,8 @@
     R.phases.forEach(function (p) {
       var tr_ = document.createElement("tr");
       var c1 = document.createElement("td"), sw = document.createElement("i"); sw.className = "sw"; sw.style.background = PH[p.key].color;
-      c1.appendChild(sw); c1.appendChild(document.createTextNode(PH[p.key].name));
+      if (p.key === "trim" || p.est) sw.style.background = "repeating-linear-gradient(90deg," + PH[p.key].color + " 0 3px, transparent 3px 5px)";
+      c1.appendChild(sw); c1.appendChild(document.createTextNode(phaseText(p)));
       var c2 = document.createElement("td"); c2.textContent = prettyDate(R.jd0 + p.t0);
       var c3 = document.createElement("td"); c3.className = "n"; c3.textContent = fmt(p.t0, 1);
       var c4 = document.createElement("td"); c4.className = "n"; c4.textContent = fmt(p.t1 - p.t0, 1);
@@ -352,32 +401,109 @@
     });
   }
 
+  function renderLegTable() {
+    var tb = $("legTable").querySelector("tbody"); tb.innerHTML = "";
+    var legs = R.summary.legs || [];
+    function td(txt, num) { var c = document.createElement("td"); if (num) c.className = "n"; c.textContent = txt; return c; }
+    if (!legs.length) {
+      var tr0 = document.createElement("tr"), c0 = td("No cislunar legs were flown: " + statusShort(R).toLowerCase() + " during the Earth spiral.");
+      c0.colSpan = 10; tr0.appendChild(c0); tb.appendChild(tr0); return;
+    }
+    legs.forEach(function (l, i) {
+      var ok = l.status === "ok", tr_ = document.createElement("tr");
+      var from = l.from ? stationName(l.from) : (R.prm.orbit === "TLI" ? "TLI" : "Earth (after the spiral)");
+      var stay = (R.stays || []).filter(function (s) { return s.leg === i; })[0];
+      tr_.appendChild(td(String(i + 1)));
+      tr_.appendChild(td(from + " → " + stationName(l.to)));
+      tr_.appendChild(td("Day " + fmt(l.depart, 1) + " · " + isoDay(R.jd0 + l.depart)));
+      tr_.appendChild(td(ok ? "Day " + fmt(l.arrive, 1) + " · " + isoDay(R.jd0 + l.arrive) : statusShort({ status: l.status })));
+      tr_.appendChild(td(ok ? fmt(l.transfer, 1) : "–", true));
+      tr_.appendChild(td(fmt(l.energy, 1), true));
+      tr_.appendChild(td(ok ? fmt(l.phasing, 1) : "–", true));
+      tr_.appendChild(td(ok ? fmt(l.capture, 1) : "–", true));
+      tr_.appendChild(td(stay ? (stay.kind === "final" ? "on station" : fmt(stay.days, 1)) : "–", true));
+      tr_.appendChild(td(!ok ? "Not completed" : l.reversed ? "Estimated, reverse leg" : "Flown" + (l.wait > 0 ? ", left " + fmt(l.wait) + " d later" : "")));
+      tb.appendChild(tr_);
+    });
+  }
+
   // ------------------------------------------------------------------ timeline and playback
   var playT = 0, playing = false, dirty = true;
 
+  var zoom = "all";
+  function tWin() {
+    if (zoom === "cis" && G && R && R.legs && R.legs.length) return [Math.max(0, R.legs[0].tDep - 2), R.tEnd];
+    return [0, R ? R.tEnd : 1];
+  }
+  var chipItems = [];
+
   function renderTimeline() {
-    var bar = $("tlbar"), T = R.tEnd; bar.innerHTML = "";
-    bar.style.display = "block";
+    var bar = $("tlbar"), W = tWin(), T0 = W[0], T1 = W[1], span = Math.max(T1 - T0, 1e-6);
+    bar.innerHTML = ""; bar.style.display = "block";
     R.phases.forEach(function (p) {
+      var a = Math.max(p.t0, T0), b = Math.min(p.t1, T1);
+      if (b <= a) return;
       var i = document.createElement("i"), col = PH[p.key].color;
       i.style.position = "absolute"; i.style.top = "0"; i.style.bottom = "0";
-      i.style.left = (p.t0 / T * 100) + "%";
-      i.style.width = "max(3px, calc(" + ((p.t1 - p.t0) / T * 100) + "% - 2px))";
-      i.style.background = PH[p.key].dashed ? "repeating-linear-gradient(90deg," + col + " 0 5px, transparent 5px 8px)" : col;
+      i.style.left = ((a - T0) / span * 100) + "%";
+      i.style.width = "max(3px, calc(" + ((b - a) / span * 100) + "% - 2px))";
+      i.style.background = (p.key === "trim" || p.est) ? "repeating-linear-gradient(90deg," + col + " 0 5px, transparent 5px 8px)" : col;
       bar.appendChild(i);
     });
-    var sc = $("scrub"); sc.max = String(T); sc.value = String(playT);
+    var sc = $("scrub"); sc.min = String(T0); sc.max = String(T1); sc.value = String(clamp(playT, T0, T1));
+    // phase key
     var lg = $("legend"); lg.innerHTML = "";
-    R.phases.forEach(function (p) {
-      var b = document.createElement("button"); b.type = "button";
-      var sw = document.createElement("i"); sw.style.background = PH[p.key].color; if (PH[p.key].dashed) sw.className = "dash";
-      var nm = document.createElement("span"); nm.textContent = PH[p.key].name;
-      var du = document.createElement("b"); du.textContent = fmt(p.t1 - p.t0, (p.t1 - p.t0) < 10 ? 1 : 0) + " d";
-      b.appendChild(sw); b.appendChild(nm); b.appendChild(du);
-      b.setAttribute("aria-label", "Jump to " + PH[p.key].name + ", " + fmt(p.t1 - p.t0, 1) + " days");
-      b.addEventListener("click", function () { setPlaying(false); setTime(p.t0 + 1e-3); });
-      lg.appendChild(b);
+    var present = {}, dashed = false;
+    R.phases.forEach(function (p) { present[p.key] = true; if (p.key === "trim" || p.est) dashed = true; });
+    PH_ORDER.forEach(function (k) {
+      if (!present[k]) return;
+      var it = document.createElement("span"); it.className = "it";
+      var sw = document.createElement("i"); sw.style.background = PH[k].color;
+      it.appendChild(sw); it.appendChild(document.createTextNode(PH[k].name.replace(" (modelled)", "")));
+      lg.appendChild(it);
     });
+    if (dashed) { var it2 = document.createElement("span"); it2.className = "it"; var sw2 = document.createElement("i"); sw2.className = "dash"; it2.appendChild(sw2); it2.appendChild(document.createTextNode("Dashed: modelled or estimated")); lg.appendChild(it2); }
+    // leg chips: spiral, each leg, each stay
+    var host = $("legchips"); host.innerHTML = ""; chipItems = [];
+    function chip(color, text, days, t0, t1) {
+      var b = document.createElement("button"); b.type = "button";
+      var dot = document.createElement("i"); dot.style.background = color;
+      var nm = document.createElement("span"); nm.textContent = text;
+      var du = document.createElement("b"); du.textContent = fmt(days, days < 10 ? 1 : 0) + " d";
+      b.appendChild(dot); b.appendChild(nm); b.appendChild(du);
+      b.setAttribute("aria-label", "Jump to " + text + ", " + fmt(days, 1) + " days");
+      b.addEventListener("click", function () { setPlaying(false); if (t0 < tWin()[0] || t0 > tWin()[1]) setZoom("all"); setTime(t0 + 1e-3); });
+      host.appendChild(b); chipItems.push({ el: b, t0: t0, t1: t1 });
+    }
+    if (R.p1) chip(PH.spiral.color, "Earth spiral", G.tHand, 0, G.tHand);
+    var items = [];
+    (R.legs || []).forEach(function (L, k) {
+      var from = L.from ? TSHORT[L.from] : (R.prm.orbit === "TLI" ? "TLI" : "Earth");
+      var t1 = L.status === "ok" ? L.tIns : L.tEnd;
+      items.push({ t0: L.tDep, t1: t1, color: PH.energy.color, text: "Leg " + (k + 1) + " · " + from + " → " + TSHORT[L.target.key] + (L.reversed ? " (est.)" : (L.status !== "ok" ? " (failed)" : "")) });
+    });
+    (R.stays || []).forEach(function (st) { items.push({ t0: st.t0, t1: st.t0 + st.days, color: PH.ops.color, text: (st.kind === "final" ? "On station · " : "At ") + TSHORT[st.tgt.key] }); });
+    items.sort(function (a, b) { return a.t0 - b.t0; });
+    items.forEach(function (it) { chip(it.color, it.text, it.t1 - it.t0, it.t0, it.t1); });
+    markChips();
+  }
+  function markChips() { chipItems.forEach(function (c) { c.el.classList.toggle("now", playT >= c.t0 - 1e-6 && playT <= c.t1 + 1e-6); }); }
+  function setZoom(z) {
+    zoom = z;
+    document.querySelectorAll("[data-zoom]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-zoom") === z)); });
+    if (R) { renderTimeline(); renderCharts(); setTime(clamp(playT, tWin()[0], tWin()[1])); }
+    if (S && R) {                       // cislunar legs read best in the Earth-Moon rotating frame, centred on the Moon
+      if (z === "cis") {
+        var keys = (R.origin ? [R.origin.key] : []).concat((R.summary.legs || []).map(function (l) { return l.to; }));
+        var far = keys.some(function (k) { return k === "L4" || k === "L5"; });
+        frameMode = "rotating"; applyFrame(); setAutoZoom(false);
+        focusMode = far ? "earth" : "moon"; $("focus").value = focusMode;
+        aimCamera(viewMode, far ? 1150 : 430);
+      } else {
+        frameMode = "inertial"; applyFrame(); focusMode = "earth"; $("focus").value = "earth"; setAutoZoom(true);
+        camDist = 1150; aimCamera(viewMode);
+      }
+    }
   }
 
   function setTime(t) {
@@ -389,6 +515,7 @@
     var b = document.createElement("b"); b.textContent = "Day " + fmt(playT, 1);
     $("tlday").appendChild(b); $("tlday").appendChild(document.createTextNode(isoDay(jd)));
     chartDist.setCursor(playT); chartC.setCursor(playT);
+    markChips();
     dirty = true;
   }
 
@@ -411,7 +538,7 @@
   function initTimeline() {
     $("play").addEventListener("click", function () {
       if (!R) return;
-      if (!playing && playT >= R.tEnd - 1e-6) setTime(0);
+      if (!playing && playT >= R.tEnd - 1e-6) setTime(tWin()[0]);
       setPlaying(!playing);
     });
     $("scrub").addEventListener("input", function () { setPlaying(false); setTime(parseFloat($("scrub").value)); });
@@ -452,7 +579,7 @@
   Chart.prototype.draw = function (cfg) {
     var host = this.host; host.innerHTML = ""; this.cfg = cfg;
     var W = Math.max(280, Math.round(host.clientWidth || 600)), H = W < 520 ? 210 : 240;
-    var m = { l: 50, r: 18, t: 14, b: 26 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+    var m = { l: 50, r: 18, t: cfg.yUnit ? 22 : 14, b: 26 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
     this.W = W; this.H = H; this.m = m;
     var X = function (x) { return m.l + (x - cfg.x0) / (cfg.x1 - cfg.x0) * pw; };
     var Y = cfg.ylog
@@ -470,7 +597,7 @@
       var tx = svg("text", { x: m.l - 7, y: y + 3.5, "text-anchor": "end", fill: "#7a869e", "font-size": 11, "font-family": "IBM Plex Mono, ui-monospace, monospace" }, root);
       tx.textContent = cfg.yFmt(v);
     });
-    if (cfg.yUnit) { var u = svg("text", { x: m.l - 7, y: m.t - 3, "text-anchor": "end", fill: "#7a869e", "font-size": 10.5, "font-family": "IBM Plex Sans, sans-serif" }, root); u.textContent = cfg.yUnit; }
+    if (cfg.yUnit) { var u = svg("text", { x: m.l - 7, y: m.t - 11, "text-anchor": "end", fill: "#7a869e", "font-size": 10.5, "font-family": "IBM Plex Sans, sans-serif" }, root); u.textContent = cfg.yUnit; }
     linTicks(cfg.x0, cfg.x1, W < 520 ? 4 : 7).forEach(function (v) {
       var x = X(v);
       svg("line", { x1: x, x2: x, y1: H - m.b, y2: H - m.b + 4, stroke: "#34425e", "stroke-width": 1 }, root);
@@ -487,11 +614,15 @@
       for (var j = b.t.length - 1; j >= 0; j--) d += "L" + X(b.t[j]).toFixed(1) + " " + Y(b.lo[j]).toFixed(1);
       svg("path", { d: d + "Z", fill: b.color, "fill-opacity": 0.12, stroke: "none" }, plot);
     });
-    (cfg.refs || []).forEach(function (r) {
+    var placed = [];
+    (cfg.refs || []).slice().sort(function (p, q) { return q.y - p.y; }).forEach(function (r) {
       if (r.y < Math.min(cfg.y0, cfg.y1) || r.y > Math.max(cfg.y0, cfg.y1)) return;
-      var y = Y(r.y);
+      var y = Y(r.y), ly = y - 5, right = false;
+      placed.forEach(function (q) { if (!q.right && Math.abs(q.ly - ly) < 13) right = true; });
+      if (right) placed.forEach(function (q) { if (q.right && Math.abs(q.ly - ly) < 13) ly = y + 13; });
+      placed.push({ ly: ly, right: right });
       svg("line", { x1: m.l, x2: W - m.r, y1: y, y2: y, stroke: "#5a6884", "stroke-width": 1 }, root);
-      var tx = svg("text", { x: m.l + 6, y: r.below ? y + 13 : y - 5, "text-anchor": "start", fill: "#a5b0c6", "font-size": 11, "font-family": "IBM Plex Sans, sans-serif" }, root);
+      var tx = svg("text", { x: right ? W - m.r - 4 : m.l + 6, y: ly, "text-anchor": right ? "end" : "start", fill: "#a5b0c6", "font-size": 11, "font-family": "IBM Plex Sans, sans-serif" }, root);
       tx.textContent = r.label;
     });
     cfg.series.forEach(function (s) {
@@ -549,68 +680,184 @@
 
   var chartDist, chartC, chartScan;
 
+  function thin(n) { return Math.max(1, Math.floor(n / 1400)); }
+
   function renderCharts() {
     if (!R) return;
-    var g = G, res = R, series = [], bands = [], lo = Infinity, hi = 0;
-    if (g.spiral) {
-      bands.push({ t: g.spiral.t, lo: g.spiral.rp, hi: g.spiral.ra, color: PH.spiral.color });
-      series.push({ t: g.spiral.t, v: g.spiral.ra, color: PH.spiral.color });
-      series.push({ t: g.spiral.t, v: g.spiral.rp, color: PH.spiral.color, width: 1.5 });
-      g.spiral.rp.forEach(function (v) { if (isFinite(v) && v > 0) lo = Math.min(lo, v); }); g.spiral.ra.forEach(function (v) { if (isFinite(v)) hi = Math.max(hi, v); });
+    var g = G, res = R, W = tWin(), series = [], bands = [], lo = Infinity, hi = 0;
+    function grow(v) { if (isFinite(v) && v > 0) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+    if (g.spiral && W[0] < g.tHand) {
+      var t = [], ra = [], rp = [];
+      for (var i = 0; i < g.spiral.t.length; i++) if (g.spiral.t[i] >= W[0] - 1) { t.push(g.spiral.t[i]); ra.push(g.spiral.ra[i]); rp.push(g.spiral.rp[i]); grow(g.spiral.ra[i]); grow(g.spiral.rp[i]); }
+      if (t.length > 1) {
+        bands.push({ t: t, lo: rp, hi: ra, color: PH.spiral.color });
+        series.push({ t: t, v: ra, color: PH.spiral.color });
+        series.push({ t: t, v: rp, color: PH.spiral.color, width: 1.5 });
+      }
     }
     g.segs.forEach(function (sg) {
-      var step = Math.max(1, Math.floor(sg.t.length / 1400)), t = [], v = [];
-      for (var i = 0; i < sg.t.length; i += step) { t.push(sg.t[i]); v.push(sg.rE[i]); if (isFinite(sg.rE[i])) { lo = Math.min(lo, sg.rE[i]); hi = Math.max(hi, sg.rE[i]); } }
-      t.push(sg.t[sg.t.length - 1]); v.push(sg.rE[sg.rE.length - 1]);
-      series.push({ t: t, v: v, color: PH[sg.key].color, dashed: !!PH[sg.key].dashed });
+      if (sg.t[sg.t.length - 1] < W[0]) return;
+      var st = thin(sg.t.length), t = [], vE = [], vM = [];
+      for (var i = 0; i < sg.t.length; i += st) { t.push(sg.t[i]); vE.push(sg.rE[i]); vM.push(sg.rM[i]); grow(sg.rE[i]); grow(sg.rM[i]); }
+      var n = sg.t.length - 1; t.push(sg.t[n]); vE.push(sg.rE[n]); vM.push(sg.rM[n]);
+      series.push({ t: t, v: vM, color: "#a5b0c6", width: 1.5, dashed: sg.key === "trim" || sg.est });
+      series.push({ t: t, v: vE, color: PH[sg.key].color, dashed: sg.key === "trim" || sg.est });
     });
     if (!isFinite(lo)) lo = K.R_E; if (!(hi > 0)) hi = 4e5;
-    var y0 = Math.max(4000, lo * 0.8), y1 = Math.max(6e5, hi * 1.3);
+    var y0 = Math.max(1000, lo * 0.8), y1 = Math.max(6e5, hi * 1.3);
     chartDist.draw({
-      x0: 0, x1: res.tEnd, ylog: true, y0: y0, y1: y1, yTicks: logTicks(y0, y1), yFmt: kmTick, yUnit: "km",
+      x0: W[0], x1: W[1], ylog: true, y0: y0, y1: y1, yTicks: logTicks(y0, y1), yFmt: kmTick, yUnit: "km",
       bands: bands, series: series, refs: [{ y: K.D_EM, label: "Moon's distance" }],
       tooltip: function (t) {
         var p = phaseAt(t), rows = [];
         if (g.spiral && t <= g.tHand) {
           rows.push({ color: PH.spiral.color, value: fmt(lerpAt(g.spiral.t, g.spiral.ra, t)) + " km", label: "apogee" });
           rows.push({ color: PH.spiral.color, value: fmt(lerpAt(g.spiral.t, g.spiral.rp, t)) + " km", label: "perigee" });
-        } else { var sg = segAt(t); if (sg) rows.push({ color: PH[sg.key].color, dashed: PH[sg.key].dashed, value: fmt(lerpAt(sg.t, sg.rE, t)) + " km", label: "from Earth" }); }
-        if (p) rows.push({ color: PH[p.key].color, dashed: PH[p.key].dashed, value: PH[p.key].name, label: "" });
+        } else {
+          var sg = segAt(t);
+          if (sg) {
+            rows.push({ color: PH[sg.key].color, dashed: sg.key === "trim" || sg.est, value: fmt(lerpAt(sg.t, sg.rE, t)) + " km", label: "from Earth" });
+            rows.push({ color: "#a5b0c6", value: fmt(lerpAt(sg.t, sg.rM, t)) + " km", label: "from the Moon" });
+          }
+        }
+        if (p) rows.push({ color: PH[p.key].color, dashed: p.key === "trim" || p.est, value: phaseText(p), label: "" });
         return rows;
       },
     });
 
-    var span = res.tEnd - g.tHand, x0 = Math.max(0, g.tHand - Math.max(20, 0.35 * span)), Ct = res.target.C;
-    var cs = [], cmin = Ct, cmax = -Infinity, clipped = false;
+    var tc = res.legs && res.legs.length ? res.legs[0].tDep : g.tHand;
+    var x0 = Math.max(0, res.p1 ? tc - Math.max(20, 0.25 * (res.tEnd - tc)) : tc), cs = [], cmin = Infinity, cmax = -Infinity, clipped = false;
     if (g.spiral) {
       var ts = [], vs = [];
-      for (var i = 0; i < g.spiral.t.length; i++) if (g.spiral.t[i] >= x0 && isFinite(g.spiral.C[i])) { ts.push(g.spiral.t[i]); vs.push(g.spiral.C[i]); cmax = Math.max(cmax, g.spiral.C[i]); }
+      for (var k = 0; k < g.spiral.t.length; k++) if (g.spiral.t[k] >= x0 && isFinite(g.spiral.C[k])) { ts.push(g.spiral.t[k]); vs.push(g.spiral.C[k]); cmax = Math.max(cmax, g.spiral.C[k]); }
       if (ts.length) cs.push({ t: ts, v: vs, color: PH.spiral.color });
     }
     g.segs.forEach(function (sg) {
-      var step = Math.max(1, Math.floor(sg.t.length / 1400)), t = [], v = [];
-      for (var i = 0; i < sg.t.length; i += step) { t.push(sg.t[i]); v.push(sg.C[i]); if (isFinite(sg.C[i])) { cmin = Math.min(cmin, sg.C[i]); cmax = Math.max(cmax, sg.C[i]); } }
+      var st = thin(sg.t.length), t = [], v = [];
+      for (var i = 0; i < sg.t.length; i += st) { t.push(sg.t[i]); v.push(sg.C[i]); if (isFinite(sg.C[i])) { cmin = Math.min(cmin, sg.C[i]); cmax = Math.max(cmax, sg.C[i]); } }
       t.push(sg.t[sg.t.length - 1]); v.push(sg.C[sg.C.length - 1]);
-      cs.push({ t: t, v: v, color: PH[sg.key].color, dashed: !!PH[sg.key].dashed });
+      cs.push({ t: t, v: v, color: PH[sg.key].color, dashed: sg.key === "trim" || sg.est });
+    });
+    var refs = [{ y: DATA.C_lagrange.L1, label: "L1 gateway 3.188" }], seen = {};
+    var stations = (res.origin ? [res.origin.key] : []).concat((res.summary.legs || []).map(function (l) { return l.to; }));
+    stations.forEach(function (key) {
+      if (seen[key]) return; seen[key] = 1;
+      var C = E.targetInfo(key).C; cmin = Math.min(cmin, C); cmax = Math.max(cmax, C);
+      refs.push({ y: C, label: TSHORT[key] + " " + C.toFixed(3) });
     });
     if (!isFinite(cmax)) cmax = DATA.C_lagrange.L1 + 0.1;
-    var cy1 = Math.min(3.45, Math.max(cmax, DATA.C_lagrange.L1 + 0.05) + 0.02), cy0 = Math.min(cmin, Ct) - 0.03;
+    var cy1 = Math.min(3.45, Math.max(cmax, DATA.C_lagrange.L1 + 0.05) + 0.02), cy0 = cmin - 0.03;
     if (cmax > cy1) clipped = true;
-    var refs = [{ y: DATA.C_lagrange.L1, label: "L1 gateway 3.188" }];
-    var tLabel = "Destination " + Ct.toFixed(3);
-    if (Math.abs(Ct - DATA.C_lagrange.L1) < 0.03) refs.push({ y: Ct, label: tLabel, below: true }); else refs.push({ y: Ct, label: tLabel });
     chartC.draw({
       x0: x0, x1: res.tEnd, ylog: false, y0: cy0, y1: cy1, yTicks: linTicks(cy0, cy1, 5), yFmt: function (v) { return v.toFixed(2); }, yUnit: "C",
       series: cs, refs: refs, notes: clipped && g.spiral ? ["Spiral values above " + cy1.toFixed(2) + " are off the top"] : [],
       tooltip: function (t) {
         var rows = [], p = phaseAt(t);
         if (g.spiral && t <= g.tHand) rows.push({ color: PH.spiral.color, value: lerpAt(g.spiral.t, g.spiral.C, t).toFixed(3), label: "approx., Moon ignored" });
-        else { var sg = segAt(t); if (sg) rows.push({ color: PH[sg.key].color, dashed: PH[sg.key].dashed, value: lerpAt(sg.t, sg.C, t).toFixed(3), label: sg.key === "trim" ? "modelled" : "Jacobi C" }); }
-        rows.push({ color: "#5a6884", value: Ct.toFixed(3), label: "destination" });
-        if (p) rows.push({ color: PH[p.key].color, dashed: PH[p.key].dashed, value: PH[p.key].name, label: "" });
+        else { var sg = segAt(t); if (sg) rows.push({ color: PH[sg.key].color, dashed: sg.key === "trim" || sg.est, value: lerpAt(sg.t, sg.C, t).toFixed(3), label: sg.est ? "estimated" : sg.key === "trim" ? "modelled" : "Jacobi C" }); }
+        if (p && p.leg != null && R.legs[p.leg]) rows.push({ color: "#5a6884", value: R.legs[p.leg].target.C.toFixed(3), label: TSHORT[R.legs[p.leg].target.key] + " value" });
+        if (p) rows.push({ color: PH[p.key].color, dashed: p.key === "trim" || p.est, value: phaseText(p), label: "" });
         return rows;
       },
     });
+  }
+
+  // ------------------------------------------------------------------ cislunar transfer matrix
+  var matrix = { busy: false, token: 0, cells: {}, kind: "sail" };
+  function rampColor(f) {
+    var a = [0x17, 0x31, 0x56], b = [0x6d, 0xa7, 0xec], c = a.map(function (v, i) { return Math.round(v + (b[i] - v) * clamp(f, 0, 1)); });
+    return { css: "rgb(" + c.join(",") + ")", dark: (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) < 120 };
+  }
+  function drawMatrix() {
+    var host = $("matrixWrap"); host.innerHTML = "";
+    var ST = E.STATIONS, cells = matrix.cells, vals = [];
+    Object.keys(cells).forEach(function (k) { if (cells[k].days != null) vals.push(cells[k].days); });
+    var vmin = vals.length ? Math.min.apply(null, vals) : 0, vmax = vals.length ? Math.max.apply(null, vals) : 1;
+    var study = DATA.study_transfers[matrix.kind] || {};
+    var tbl = document.createElement("table"); tbl.className = "matrix";
+    var thead = document.createElement("thead"), hr = document.createElement("tr"), h0 = document.createElement("th");
+    h0.textContent = "From ↓  To →"; h0.className = "rowh"; hr.appendChild(h0);
+    ST.forEach(function (d) { var th = document.createElement("th"); th.textContent = TSHORT[d]; th.scope = "col"; hr.appendChild(th); });
+    thead.appendChild(hr); tbl.appendChild(thead);
+    var tb = document.createElement("tbody");
+    ST.forEach(function (o) {
+      var tr_ = document.createElement("tr"), th = document.createElement("th"); th.className = "rowh"; th.scope = "row"; th.textContent = TSHORT[o]; tr_.appendChild(th);
+      ST.forEach(function (d) {
+        var td = document.createElement("td");
+        if (o === d) { td.className = "diag"; td.textContent = "–"; tr_.appendChild(td); return; }
+        var c = cells[o + ">" + d], b = document.createElement("button"); b.type = "button";
+        var ref = study[o + ">" + d];
+        if (c && c.days != null) {
+          var col = rampColor(vmax > vmin ? (c.days - vmin) / (vmax - vmin) : 0.5);
+          b.style.background = col.css; b.style.color = col.dark ? "#e8ecf4" : "#0b1220";
+          b.textContent = (c.est ? "≈" : "") + fmt(c.days);
+          var sm = document.createElement("small"); sm.textContent = ref != null ? "study " + fmt(ref) : ""; b.appendChild(sm);
+          b.title = TNAME[o] + " → " + TNAME[d] + ": " + fmt(c.days, 1) + " days" + (c.est ? " (estimated from the reverse leg)" : "") +
+            " · energy " + fmt(c.energy, 1) + ", phasing " + fmt(c.phasing, 1) + ", capture " + fmt(c.capture, 1) + (ref != null ? " · study median " + fmt(ref, 1) + " d" : "");
+        } else if (c) {
+          b.style.background = "#2a1416"; b.style.color = "#e66767"; b.textContent = "×";
+          var sm2 = document.createElement("small"); sm2.textContent = statusShort({ status: c.status }); b.appendChild(sm2);
+          b.title = TNAME[o] + " → " + TNAME[d] + ": " + statusShort({ status: c.status });
+        } else {
+          b.style.background = "#131b2d"; b.style.color = "#7a869e"; b.textContent = matrix.busy ? "…" : "–";
+          if (ref != null) { var sm3 = document.createElement("small"); sm3.textContent = "study " + fmt(ref); b.appendChild(sm3); }
+          b.title = "Fly " + TNAME[o] + " → " + TNAME[d];
+        }
+        b.setAttribute("aria-label", b.title);
+        b.addEventListener("click", function () {
+          $("orbit").value = "CIS:" + o; $("target").value = d; $("stop2").value = "none";
+          syncVisibility(); syncSite(); runNow();
+          document.querySelector(".stage").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        td.appendChild(b); tr_.appendChild(td);
+      });
+      tb.appendChild(tr_);
+    });
+    tbl.appendChild(tb); host.appendChild(tbl);
+    var key = document.createElement("div"); key.className = "mkey";
+    var k1 = document.createElement("span"); k1.style.display = "inline-flex"; k1.style.alignItems = "center"; k1.style.gap = "8px";
+    var r0 = document.createElement("span"); r0.textContent = vals.length ? fmt(vmin) + " d" : "fewer days";
+    var rr = document.createElement("span"); rr.className = "ramp";
+    var r1 = document.createElement("span"); r1.textContent = vals.length ? fmt(vmax) + " d" : "more days";
+    k1.appendChild(r0); k1.appendChild(rr); k1.appendChild(r1); key.appendChild(k1);
+    var k2 = document.createElement("span"); k2.textContent = "≈ estimated from the reverse leg · small figure: study median for " + (matrix.kind === "hybrid" ? "CR-H (hybrid)" : "CR-S (sail)");
+    key.appendChild(k2); host.appendChild(key);
+  }
+
+  function startMatrix() {
+    if (matrix.busy) { matrix.busy = false; matrix.token++; $("matrixBtn").textContent = "Fly all 30 transfers"; $("matrixMsg").textContent = "Stopped."; drawMatrix(); return; }
+    var P0 = readParams(), err = validate(Object.assign({}, P0, { orbit: "CIS:L1H", target: "L2H", stop2: "none" }));
+    if (err) { $("matrixMsg").textContent = err; return; }
+    var ST = E.STATIONS, pairs = [];
+    ST.forEach(function (o) { ST.forEach(function (d) { if (o !== d) pairs.push([o, d]); }); });
+    matrix = { busy: true, token: matrix.token + 1, cells: {}, kind: P0.sepOn ? "hybrid" : "sail" };
+    var token = matrix.token, i = 0, t0 = performance.now();
+    $("matrixBtn").textContent = "Stop";
+    drawMatrix();
+    function next() {
+      if (token !== matrix.token) return;
+      if (i >= pairs.length) {
+        matrix.busy = false; $("matrixBtn").textContent = "Fly all 30 transfers";
+        var ratios = [], study = DATA.study_transfers[matrix.kind] || {}, est = 0, fail = 0;
+        Object.keys(matrix.cells).forEach(function (k) { var c = matrix.cells[k]; if (c.days != null && study[k]) ratios.push(c.days / study[k]); if (c.est) est++; if (c.days == null) fail++; });
+        ratios.sort(function (a, b) { return a - b; });
+        $("matrixMsg").textContent = "Flew 30 transfers in " + ((performance.now() - t0) / 1000).toFixed(1) + " s, starting " + P0.launch + "." +
+          (ratios.length ? " Median ratio to the study: " + ratios[Math.floor(ratios.length / 2)].toFixed(2) + "." : "") +
+          (est ? " " + est + " estimated from the reverse leg." : "") + (fail ? " " + fail + " not completed (×)." : "");
+        drawMatrix(); return;
+      }
+      var o = pairs[i][0], d = pairs[i][1];
+      var prm = engineParams(Object.assign({}, P0, { orbit: "CIS:" + o, target: d, stop2: "none" }));
+      prm.departureTries = [0, 6];
+      $("matrixMsg").textContent = "Flying " + TNAME[o] + " → " + TNAME[d] + " (" + (i + 1) + " of 30)…";
+      drive(E.runMission(prm), token, function () {}, function (res) {
+        var l = res.summary.legs[0] || {};
+        matrix.cells[o + ">" + d] = { days: res.status === "ok" ? res.summary.toTargetDays : null, status: res.status, est: !!l.reversed,
+          energy: l.energy, phasing: l.phasing, capture: l.capture };
+        i++; drawMatrix(); setTimeout(next, 0);
+      }, function () { matrix.cells[o + ">" + d] = { days: null, status: "error" }; i++; setTimeout(next, 0); }, function (tk) { return tk === matrix.token; });
+    }
+    next();
   }
 
   // ------------------------------------------------------------------ launch-date scan
@@ -941,24 +1188,35 @@
         fe[i * 3 + 1] = (Fi.xh[1] * u[0] + Fi.yh[1] * u[1] + Fi.zh[1] * u[2]) / 1000;
         fe[i * 3 + 2] = (Fi.xh[2] * u[0] + Fi.yh[2] * u[1] + Fi.zh[2] * u[2]) / 1000;
       }
-      var o = { width: sg.key === "ops" ? 1.8 : 2.2, dashed: !!PH[sg.key].dashed };
+      var o = { width: sg.key === "ops" ? 1.8 : 2.2, dashed: sg.key === "trim" || !!sg.est };
       S.tracks.push(trackOf(S.eciGroup, sg.t, fe, PH[sg.key].color, o));
       S.tracks.push(trackOf(S.rotOnly, sg.t, fr, PH[sg.key].color, o));
     });
 
-    // destination
-    Object.keys(S.catalog).forEach(function (k) { S.catalog[k].visible = k !== res.target.key; });
-    if (res.target.kind === "orbit") {
-      var flat = [];
-      res.target.states.forEach(function (X) { flat.push((X[0] + K.MU) * K.L / 1000, X[1] * K.L / 1000, X[2] * K.L / 1000); });
-      var X0 = res.target.states[0]; flat.push((X0[0] + K.MU) * K.L / 1000, X0[1] * K.L / 1000, X0[2] * K.L / 1000);
-      var tl = new THREE.Line2((function () { var gg = new THREE.LineGeometry(); gg.setPositions(flat); return gg; })(), lineMat(PH.ops.color, 1.6, 0.8));
-      S.rotGroup.add(tl); S.perResult.push(tl);
-    } else {
-      var L = S.lpts[res.target.key].raw, ring = new THREE.Line2((function () { var gg = new THREE.LineGeometry(), f = []; for (var i = 0; i <= 96; i++) { var a = 2 * Math.PI * i / 96; f.push(L[0] + 14 * Math.cos(a), L[1] + 14 * Math.sin(a), L[2]); } gg.setPositions(f); return gg; })(), lineMat(PH.ops.color, 1.6, 0.85));
-      S.rotGroup.add(ring); S.perResult.push(ring);
-    }
-    S.labels.target.textContent = TNAME[res.target.key] || "";
+    // stations of the itinerary (origin and every stop) are highlighted; the rest of the catalogue stays faint
+    var keys = [], seen = {};
+    (res.origin ? [res.origin.key] : []).concat((res.summary.legs || []).map(function (l) { return l.to; })).concat([res.target.key]).forEach(function (k) { if (!seen[k]) { seen[k] = 1; keys.push(k); } });
+    Object.keys(S.catalog).forEach(function (k) { S.catalog[k].visible = !seen[k]; });
+    (S.stopLabels || []).forEach(function (x) { if (x.el.parentNode) x.el.parentNode.removeChild(x.el); });
+    S.stopLabels = [];
+    keys.forEach(function (key) {
+      var tg = E.targetInfo(key), obj;
+      if (tg.kind === "orbit") {
+        var flat = [];
+        tg.states.forEach(function (X) { flat.push((X[0] + K.MU) * K.L / 1000, X[1] * K.L / 1000, X[2] * K.L / 1000); });
+        var X0 = tg.states[0]; flat.push((X0[0] + K.MU) * K.L / 1000, X0[1] * K.L / 1000, X0[2] * K.L / 1000);
+        var gg = new THREE.LineGeometry(); gg.setPositions(flat);
+        obj = new THREE.Line2(gg, lineMat(PH.ops.color, 1.6, 0.8));
+      } else {
+        var L = S.lpts[key].raw, f = [], g2 = new THREE.LineGeometry();
+        for (var q = 0; q <= 96; q++) { var an = 2 * Math.PI * q / 96; f.push(L[0] + 14 * Math.cos(an), L[1] + 14 * Math.sin(an), L[2]); }
+        g2.setPositions(f); obj = new THREE.Line2(g2, lineMat(PH.ops.color, 1.6, 0.85));
+      }
+      S.rotGroup.add(obj); S.perResult.push(obj);
+      var el = document.createElement("div"); el.className = "lbl"; el.textContent = TNAME[key]; $("labels").appendChild(el);
+      S.stopLabels.push({ key: key, tg: tg, el: el });
+    });
+    S.labels.target.textContent = "";
     S.labels.craft.textContent = R.P.preset !== "custom" ? R.P.preset : "Sailcraft";
     applyFrame();
   }
@@ -994,7 +1252,7 @@
 
   function setAutoZoom(on) { autoZoom = on; $("autozoom").setAttribute("aria-pressed", String(on)); }
 
-  function aimCamera(view) {
+  function aimCamera(view, distance) {
     if (!S) return;
     viewMode = view;
     document.querySelectorAll("[data-view]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-view") === view)); });
@@ -1005,6 +1263,9 @@
     var d = mv(P3, dirF), n = nrm(d), tgt = S.controls.target;
     var dist = S.camera.position.distanceTo(tgt) || camDist;
     if (autoZoom) dist = camDist;
+    if (distance) dist = distance;
+    var tgt0 = focusMode === "moon" && S.moon ? S.moon.position : tgt;
+    if (distance) tgt.copy(tgt0);
     S.camera.position.set(tgt.x + d[0] / n * dist, tgt.y + d[1] / n * dist, tgt.z + d[2] / n * dist);
     S.camera.lookAt(tgt); S.controls.update();
     dirty = true;
@@ -1041,13 +1302,13 @@
       var X = q.X, u = [(X[0] + K.MU) * K.L, X[1] * K.L, X[2] * K.L];
       out.r = [F.xh[0] * u[0] + F.yh[0] * u[1] + F.zh[0] * u[2], F.xh[1] * u[0] + F.yh[1] * u[1] + F.zh[1] * u[2], F.xh[2] * u[0] + F.yh[2] * u[1] + F.zh[2] * u[2]];
       out.u = u;
-      var ph = phaseAt(t); out.phase = ph ? ph.key : "ops";
+      var ph = phaseAt(t); out.phase = ph ? ph.key : "ops"; out.est = !!(ph && ph.est);
       if (q.n) {
         var n = q.n; out.n = [F.xh[0] * n[0] + F.yh[0] * n[1] + F.zh[0] * n[2], F.xh[1] * n[0] + F.yh[1] * n[1] + F.zh[1] * n[2], F.xh[2] * n[0] + F.yh[2] * n[1] + F.zh[2] * n[2]];
       } else out.n = s;
-      out.attitude = out.phase === "energy" ? "Pumping energy" : out.phase === "approach" ? "Feathered" : out.phase === "trim" ? "Trimming" : "Station-keeping";
+      out.attitude = out.est ? "Estimated leg" : out.phase === "energy" ? "Pumping energy" : out.phase === "approach" ? "Feathered" : out.phase === "trim" ? "Trimming" : "Station-keeping";
       var sg = segAt(t);
-      out.C = sg ? lerpAt(sg.t, sg.C, t) : R.target.C; out.Capprox = false;
+      out.C = sg ? lerpAt(sg.t, sg.C, t) : R.target.C; out.Capprox = !!(sg && (sg.key === "trim" || sg.est));
       out.m = sg && sg.m ? lerpAt(sg.t, sg.m, t) : G.mFinal;
       var p = dot(out.r, su), lit = !(p < 0 && nrm([out.r[0] - su[0] * p, out.r[1] - su[1] * p, out.r[2] - su[2] * p]) < K.R_E);
       var rm = [out.r[0] - mo.r[0], out.r[1] - mo.r[1], out.r[2] - mo.r[2]], pm = dot(rm, su);
@@ -1076,7 +1337,7 @@
     if (!hudEls) hudInit();
     var p = phaseAt(playT);
     hudEls.when.textContent = "Day " + fmt(playT, 1) + " · " + isoDay(st.jd);
-    if (p) { hudEls.sw.style.background = PH[p.key].color; hudEls.ph.textContent = PH[p.key].name + (p.key === "ops" ? " · " + (TNAME[R.target.key] || "") : ""); }
+    if (p) { hudEls.sw.style.background = PH[p.key].color; hudEls.ph.textContent = phaseText(p); }
     hudEls.rE.textContent = fmt(st.rE) + " km";
     hudEls.rM.textContent = fmt(st.rMoon) + " km";
     hudEls.att.textContent = st.phase === "spiral" && st.deployed === false ? "Stowed, SEP climb" : st.attitude;
@@ -1172,12 +1433,16 @@
     project(sdv.clone().multiplyScalar(arrowLen * 1.08), L.sun, 0, 0);
     project(S.craft.position.clone(), L.craft, 0, -18);
     ["L1", "L2", "L3", "L4", "L5"].forEach(function (k) { var w = S.lpts[k].mesh.getWorldPosition(new THREE.Vector3()); project(w, L[k], 14, -8); });
-    if (R.target.kind === "orbit") {
-      var ts = R.target.states, far = ts[Math.floor(ts.length / 4)];
-      var wp = v3(mv(Mrot, [(far[0] + K.MU) * K.L / 1000, far[1] * K.L / 1000, far[2] * K.L / 1000]));
-      project(wp, L.target, 0, -12);
-    } else { var w5 = S.lpts[R.target.key].mesh.getWorldPosition(new THREE.Vector3()); project(w5, L.target, 0, 16); }
-    L[R.target.key] && R.target.kind === "point" && (L[R.target.key].style.visibility = "hidden");
+    L.target.style.visibility = "hidden";
+    (S.stopLabels || []).forEach(function (x) {
+      if (x.tg.kind === "orbit") {
+        var far = x.tg.states[Math.floor(x.tg.states.length / 4)];
+        project(v3(mv(Mrot, [(far[0] + K.MU) * K.L / 1000, far[1] * K.L / 1000, far[2] * K.L / 1000])), x.el, 0, -12);
+      } else {
+        project(S.lpts[x.key].mesh.getWorldPosition(new THREE.Vector3()), x.el, 0, 16);
+        if (L[x.key]) L[x.key].style.visibility = "hidden";
+      }
+    });
 
     $("scalenote").textContent = (bs > 1.05 ? "Earth and Moon drawn ×" + bs.toFixed(1) + " for visibility · " : "Earth and Moon to scale · ") +
       "rings every 100,000 km · " + (rot ? "x-axis points at the Moon" : "lunar orbit plane horizontal");
@@ -1209,6 +1474,10 @@
     chartDist = new Chart($("chartDist")); chartC = new Chart($("chartC")); chartScan = $("chartScan");
     drawScan();
     $("scanBtn").addEventListener("click", startScan);
+    $("matrixBtn").addEventListener("click", startMatrix);
+    $("matrixMsg").textContent = "Not flown yet. Fly all 30 (about ten seconds), or select one cell to fly that leg. Small figures are the study's medians.";
+    document.querySelectorAll("[data-zoom]").forEach(function (b) { b.addEventListener("click", function () { setZoom(b.getAttribute("data-zoom")); }); });
+    drawMatrix();
     if (HAS3D) initScene();
     else noThree("The 3-D view needs three.js from cdn.jsdelivr.net, which did not load. The numbers, timeline and charts still update.");
     var rw = 0, rt = 0;

@@ -69,5 +69,25 @@ check("default mission completes", res.status === "ok" ? 1 : 0, 1, 0);
 check("default mission days to station (report: ~841 d spiral + cislunar legs)", res.summary.toTargetDays, 860, 0.1, true);
 check("default mission relative inclination at hand-over (deg)", res.handover.incMoon, 0, 12);
 console.log("runtime " + (Date.now() - t0) + " ms");
+
+// 7. cislunar legs against the study's transfer matrix (report Table 6.2, CR-S); NRHO -> EML1 is estimated from the
+//    reverse leg, as in the study; an itinerary's drawn path has no discontinuities
+const study = require("./data.js").study_transfers.sail;
+function fly(p) { const gg = E.runMission(p); for (;;) { const s = gg.next(); if (s.done) return s.value; } }
+const craft = { launch: "2030-01-01", mass: 111, area: 1653, film: "AL_CP1", derate: 100, sepOn: false, solar: "auto", solarGravity: true };
+[["L1H", "L2H"], ["L2H", "DRO"], ["DRO", "NRHO"], ["NRHO", "L1H"], ["L4", "L5"]].forEach(function (od) {
+  const r = fly(Object.assign({}, craft, { orbit: "CIS", origin: od[0], stops: [{ key: od[1] }], departureTries: [0, 6] }));
+  check(od[0] + " -> " + od[1] + " days vs study median" + (r.summary.legs[0].reversed ? " (reverse-leg estimate)" : ""),
+        r.status === "ok" ? r.summary.toTargetDays : 1e9, study[od[0] + ">" + od[1]], 0.25, true);
+});
+const it = fly(Object.assign({}, craft, { orbit: "CIS", origin: "NRHO", stops: [{ key: "L2H", dwell: 10 }, { key: "L4", dwell: 10 }, { key: "L1H" }] }));
+let jumps = 0;
+for (let t = it.legs[0].tDep; t < it.tEnd - 0.02; t += 0.01) {
+  const a = E.rotState(it, t).X, b = E.rotState(it, t + 0.01).X, c = E.rotState(it, t + 0.001).X;
+  const d1 = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) * K.L, d2 = Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]) * K.L;
+  if (d2 > 200 && d1 / d2 < 3) jumps++;
+}
+check("three-leg itinerary NRHO -> EML2 -> EML4 -> EML1 completes", it.status === "ok" ? 1 : 0, 1, 0);
+check("three-leg itinerary path discontinuities", jumps, 0, 0);
 console.log(fails ? fails + " check(s) FAILED" : "all checks passed");
 process.exit(fails ? 1 : 0);
