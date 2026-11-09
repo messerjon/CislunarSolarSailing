@@ -13,6 +13,7 @@ reference library: `CislunarSolarSailing/Resources/`.
 | `figures/` | All 2-D and 3-D figures (16:9 PNG, 200 dpi) |
 | `results/` | Machine-readable results (JSON) for every analysis and design point |
 | `simulator/` | The simulator package and analyses (NumPy or PyTorch/GPU backend) — see `simulator/README.md` |
+| `interactive/cislunar_sail_explorer.html` | Interactive 3-D mission explorer: change the spacecraft, propulsion, destination and launch date and the mission is re-flown in the browser — see `interactive/README.md` |
 
 ## Reproduce
 
